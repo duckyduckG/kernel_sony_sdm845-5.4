@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 
+ifneq ($(CONFIG_ARCH_SDM845), y)
 # auto-detect subdirs
 ifneq ($(CONFIG_ARCH_QTI_VM), y)
 ifeq ($(CONFIG_ARCH_LAHAINA), y)
@@ -41,3 +42,4 @@ LINUXINCLUDE    += -I$(srctree)/techpack/video/include \
 USERINCLUDE     += -I$(srctree)/techpack/video/include/uapi
 
 obj-y +=msm/
+endif
