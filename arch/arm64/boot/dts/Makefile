@@ -2,7 +2,14 @@
 dtstree	:= $(srctree)/$(src)
 vendor  := $(dtstree)/vendor
 ifneq "$(wildcard $(vendor)/Makefile)" ""
-    subdir-y += vendor
+    ifeq ($(CONFIG_ARCH_SDM845),y)
+        subdir-y += qcom
+    ifeq ($(CONFIG_MACH_XIAOMI),y)
+        subdir-y += xiaomi
+    endif
+    else
+        subdir-y += vendor
+    endif
 else
 subdir-y += actions
 subdir-y += al
@@ -31,6 +38,7 @@ subdir-y += socionext
 subdir-y += sprd
 subdir-y += synaptics
 subdir-y += ti
+subdir-y += xiaomi
 subdir-y += xilinx
 subdir-y += zte
 endif
