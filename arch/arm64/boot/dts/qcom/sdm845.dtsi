@@ -1655,7 +1655,7 @@
 		qcom,devfreq,freq-table = <50000000 201500000>;
 		clocks = <&clock_gcc GCC_SDCC2_AHB_CLK>,
 			<&clock_gcc GCC_SDCC2_APPS_CLK>;
-		clock-names = "iface_clk", "core_clk";
+		clock-names = "iface", "core";
 
 		status = "disabled";
 
