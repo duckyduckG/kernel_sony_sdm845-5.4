@@ -24,12 +24,19 @@
 #include <asm/smp_plat.h>
 #include <asm/cacheflush.h>
 
+#include <linux/qcom_scm.h>
+
 #include "../thermal_core.h"
 
 #define LIMITS_DCVSH			0x10
 #define LIMITS_NODE_DCVS		0x44435653
 
 #define LIMITS_SUB_FN_THERMAL		0x54484D4C
+#define LIMITS_SUB_FN_CRNT		0x43524E54
+#define LIMITS_SUB_FN_REL		0x52454C00
+#define LIMITS_SUB_FN_BCL		0x42434C00
+#define LIMITS_ALGO_MODE_ENABLE		0x454E424C
+
 #define LIMITS_HI_THRESHOLD		0x48494748
 #define LIMITS_LOW_THRESHOLD		0x4C4F5700
 #define LIMITS_ARM_THRESHOLD		0x41524D00
@@ -45,6 +52,7 @@
 #define LIMITS_POLLING_DELAY_MS		10
 #define LIMITS_CLUSTER_REQ_OFFSET	0x704
 #define LIMITS_CLUSTER_INT_CLR_OFFSET	0x8
+#define LIMITS_CLUSTER_MIN_FREQ_OFFSET	0x3C0
 #define dcvsh_get_frequency(_val, _max) do { \
 	_max = (_val) & 0x3FF; \
 	_max *= 19200; \
@@ -66,6 +74,7 @@ struct __limits_cdev_data {
 struct limits_dcvs_hw {
 	char sensor_name[THERMAL_NAME_LENGTH];
 	uint32_t affinity;
+	uint32_t temp_limits[LIMITS_TRIP_MAX];
 	int irq_num;
 	void *osm_hw_reg;
 	void *int_clr_reg;
@@ -217,6 +226,118 @@ static irqreturn_t lmh_dcvs_handle_isr(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
+static int limits_dcvs_write(uint32_t node_id, uint32_t fn,
+			      uint32_t setting, uint32_t val, uint32_t val1,
+			      bool enable_val1)
+{
+	int ret;
+	uint32_t *payload = NULL;
+	uint32_t payload_len;
+	phys_addr_t payload_r;
+	uint32_t payload_size;
+	u64 lmh_node;
+
+	payload_len = ((enable_val1) ? 6 : 5) * sizeof(uint32_t);
+	payload = kzalloc(payload_len, GFP_KERNEL);
+	if (!payload) {
+		return -ENOMEM;
+	}
+	payload[0] = fn; /* algorithm */
+	payload[1] = 0; /* unused sub-algorithm */
+	payload[2] = setting;
+	payload[3] = enable_val1 ? 2 : 1; /* number of values */
+	payload[4] = val;
+	if (enable_val1)
+		payload[5] = val1;
+
+	payload_r = virt_to_phys(payload);
+	payload_size = payload_len;
+	lmh_node = LIMITS_NODE_DCVS;
+
+	dmac_flush_range(payload, (void *)payload + payload_len);
+	ret = qcom_scm_lmh_limit_dcvsh(payload_r, payload_size,
+					lmh_node, node_id, 0);
+	if (ret)
+		pr_err("LMH DCVS write failed: node=0x%x, setting=0x%x, val=%u, err=%d\n",
+			node_id, setting, val, ret);
+	else
+		pr_debug("LMH DCVS write success: node=0x%x, setting=0x%x, val=%u%s\n",
+			node_id, setting, val,
+			enable_val1 ? " (dual-value)" : "");
+
+	kfree(payload);
+
+	return ret;
+}
+
+static int lmh_get_temp(void *data, int *val)
+{
+	/*
+	 * LMH DCVSh hardware doesn't support temperature read.
+	 * return a default value for the thermal core to aggregate
+	 * the thresholds
+	 */
+	*val = LIMITS_TEMP_DEFAULT;
+
+	return 0;
+}
+
+static int lmh_set_trips(void *data, int low, int high)
+{
+	struct limits_dcvs_hw *hw = (struct limits_dcvs_hw *)data;
+	int ret = 0;
+
+	if (high >= LIMITS_TEMP_HIGH_THRESH_MAX || low < 0) {
+		pr_err("Value out of range low:%d high:%d\n",
+				low, high);
+		return -EINVAL;
+	}
+
+	/* Sanity check limits before writing to the hardware */
+	if (low >= high)
+		return -EINVAL;
+
+	hw->temp_limits[LIMITS_TRIP_HI] = (uint32_t)high;
+	hw->temp_limits[LIMITS_TRIP_ARM] = (uint32_t)low;
+
+	ret =  limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_THERMAL,
+				  LIMITS_ARM_THRESHOLD, low, 0, 0);
+	if (ret)
+		return ret;
+	ret =  limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_THERMAL,
+				  LIMITS_HI_THRESHOLD, high, 0, 0);
+	if (ret)
+		return ret;
+	ret =  limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_THERMAL,
+				  LIMITS_LOW_THRESHOLD,
+				  high - LIMITS_LOW_THRESHOLD_OFFSET,
+				  0, 0);
+	if (ret)
+		return ret;
+
+	return ret;
+}
+
+static struct thermal_zone_of_device_ops limits_sensor_ops = {
+	.get_temp   = lmh_get_temp,
+	.set_trips  = lmh_set_trips,
+};
+
+static int enable_lmh(void)
+{
+	int ret = 0;
+
+	ret = qcom_scm_lmh_profile_change(true);
+	if (ret) {
+		pr_err("Error switching profile:[1]. err:%d\n", ret);
+		goto err;
+	} else
+		pr_debug("success switching profile:[1]. dn:%d\n", ret);
+
+err:
+	return ret;
+}
+
 static void limits_isens_qref_init(struct platform_device *pdev,
 					struct limits_dcvs_hw *hw,
 					int idx, char *reg_name,
@@ -283,9 +404,10 @@ static int limits_dcvs_probe(struct platform_device *pdev)
 	int ret;
 	int affinity = -1;
 	struct limits_dcvs_hw *hw;
+	struct thermal_zone_device *tzdev;
 	struct device_node *dn = pdev->dev.of_node;
 	struct device_node *cpu_node, *lmh_node;
-	uint32_t request_reg, clear_reg;
+	uint32_t request_reg, clear_reg, min_reg;
 	int cpu, idx = 0;
 	cpumask_t mask = { CPU_BITS_NONE };
 	const __be32 *addr;
@@ -347,12 +469,52 @@ static int limits_dcvs_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
+	/* Check legcay LMH HW enablement is needed or not */
+	if (of_property_read_bool(dn, "qcom,legacy-lmh-enable")) {
+		/* Enable the thermal algorithm early */
+		ret = limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_THERMAL,
+			 LIMITS_ALGO_MODE_ENABLE, 1, 0, 0);
+		if (ret) {
+			pr_err("Unable to enable THERM algo for cluster%d\n",
+				affinity);
+			return ret;
+		}
+		/* Enable the LMH outer loop algorithm */
+		ret = limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_CRNT,
+			 LIMITS_ALGO_MODE_ENABLE, 1, 0, 0);
+		if (ret) {
+			pr_err("Unable to enable CRNT algo for cluster%d\n",
+				affinity);
+			return ret;
+		}
+		/* Enable the Reliability algorithm */
+		ret = limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_REL,
+			 LIMITS_ALGO_MODE_ENABLE, 1, 0, 0);
+		if (ret) {
+			pr_err("Unable to enable REL algo for cluster%d\n",
+				affinity);
+			return ret;
+		}
+		/* Enable the BCL algorithm */
+		ret = limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_BCL,
+			 LIMITS_ALGO_MODE_ENABLE, 1, 0, 0);
+		if (ret) {
+			pr_err("Unable to enable BCL algo for cluster%d\n",
+				affinity);
+			return ret;
+		}
+		ret = enable_lmh();
+		if (ret)
+			return ret;
+	}
+
 	addr = of_get_address(dn, 0, NULL, NULL);
 	if (!addr) {
 		pr_err("Property llm-base-addr not found\n");
 		return -EINVAL;
 	}
 	clear_reg = be32_to_cpu(addr[0]) + LIMITS_CLUSTER_INT_CLR_OFFSET;
+	min_reg = be32_to_cpu(addr[0]) + LIMITS_CLUSTER_MIN_FREQ_OFFSET;
 	addr = of_get_address(dn, 1, NULL, NULL);
 	if (!addr) {
 		pr_err("Property osm-base-addr not found\n");
@@ -360,9 +522,28 @@ static int limits_dcvs_probe(struct platform_device *pdev)
 	}
 	request_reg = be32_to_cpu(addr[0]) + LIMITS_CLUSTER_REQ_OFFSET;
 
+	/*
+	 * Setup virtual thermal zones for each LMH-DCVS hardware
+	 * The sensor does not do actual thermal temperature readings
+	 * but does support setting thresholds for trips.
+	 * Let's register with thermal framework, so we have the ability
+	 * to set low/high thresholds.
+	 */
+	hw->temp_limits[LIMITS_TRIP_HI] = INT_MAX;
+	hw->temp_limits[LIMITS_TRIP_ARM] = 0;
 	hw->hw_freq_limit = U32_MAX;
 	snprintf(hw->sensor_name, sizeof(hw->sensor_name), "limits_sensor-%02d",
 			affinity);
+	tzdev = thermal_zone_of_sensor_register(&pdev->dev, 0, hw,
+			&limits_sensor_ops);
+	if (IS_ERR_OR_NULL(tzdev)) {
+		/*
+		 * Ignore error in case if thermal zone devicetree node is not
+		 * defined for this lmh hardware.
+		 */
+		if (!tzdev || PTR_ERR(tzdev) != -ENODEV)
+			return PTR_ERR(tzdev);
+	}
 
 	mutex_init(&hw->access_lock);
 	INIT_DEFERRABLE_WORK(&hw->freq_poll_work, limits_dcvs_poll);
