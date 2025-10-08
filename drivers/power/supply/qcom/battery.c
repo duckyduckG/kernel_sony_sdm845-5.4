@@ -1472,6 +1472,7 @@ static int pl_disable_vote_callback(struct votable *votable,
 	chip->fcc_stepper_enable = pval.intval;
 	pr_debug("FCC Stepper %s\n", pval.intval ? "enabled" : "disabled");
 
+#if !defined(CONFIG_QPNP_SMB2)
 	rc = chip->chg_param->iio_read(chip->dev, PSY_IIO_MAIN_FCC_MAX,
 		&pval.intval);
 	if (rc < 0) {
@@ -1481,6 +1482,7 @@ static int pl_disable_vote_callback(struct votable *votable,
 	} else if (pval.intval > 0) {
 		chip->main_fcc_max = pval.intval;
 	}
+#endif
 
 	if (chip->fcc_stepper_enable) {
 		cancel_delayed_work_sync(&chip->fcc_stepper_work);
