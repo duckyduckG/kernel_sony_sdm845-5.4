@@ -1,4 +1,5 @@
 #include "../../../qcom/sdm845-audio-overlay.dtsi"
+#include "../../../qcom/sdm845-pmic-overlay.dtsi"
 
 &snd_934x {
     /delete-property/ qcom,msm-mbhc-hs-mic-max-threshold-mv;
