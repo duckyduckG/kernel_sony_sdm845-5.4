@@ -1,9 +1,17 @@
 #include "../../../qcom/sdm845-audio-overlay.dtsi"
+#include "../../../qcom/sdm845-pmic-overlay.dtsi"
 
 &snd_934x {
     /delete-property/ qcom,msm-mbhc-hs-mic-max-threshold-mv;
     /delete-property/ qcom,msm-mbhc-hs-mic-min-threshold-mv;
     /delete-property/ qcom,usbc-analog-en2-gpio;
+
+	io-channels =
+		<&pmi8998_charger PSY_IIO_TYPEC_POWER_ROLE>,
+		<&pmi8998_charger PSY_IIO_TYPEC_MODE>;
+	io-channel-names =
+		"typec_power_role",
+		"typec_mode";
 };
 
 &wcd934x_cdc {
