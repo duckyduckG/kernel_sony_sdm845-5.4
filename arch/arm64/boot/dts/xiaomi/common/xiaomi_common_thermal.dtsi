@@ -70,8 +70,7 @@
 	<&pm8998_vadc ADC5_AMUX_THM2_100K_PU>,
 	<&pm8998_vadc ADC5_AMUX_THM3_100K_PU>,
 	<&pm8998_vadc ADC5_AMUX_THM4_100K_PU>,
-	<&pm8998_vadc ADC5_AMUX_THM5_100K_PU>,
-	<&pm8998_vadc ADC5_GPIO1_100K_PU>; // beryllium-backlight
+	<&pm8998_vadc ADC5_AMUX_THM5_100K_PU>;
 
 	vph_pwr {
 		label = "vph_pwr";
