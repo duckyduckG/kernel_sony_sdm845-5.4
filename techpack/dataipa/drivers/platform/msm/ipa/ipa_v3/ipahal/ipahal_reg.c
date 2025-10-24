@@ -2927,10 +2927,10 @@ static struct ipahal_reg_obj ipahal_reg_objs[IPA_HW_MAX][IPA_REG_MAX] = {
 		ipareg_construct_rx_hps_clients_depth1, ipareg_parse_dummy,
 		0x000023D0, 0, 0, 0, 0},
 	[IPA_HW_v3_0][IPA_QSB_MAX_WRITES] = {
-		ipareg_construct_qsb_max_writes, ipareg_parse_dummy,
+		ipareg_construct_qsb_max_writes, ipareg_parse_qsb_max_writes,
 		0x00000074, 0, 0, 0, 0},
 	[IPA_HW_v3_0][IPA_QSB_MAX_READS] = {
-		ipareg_construct_qsb_max_reads, ipareg_parse_dummy,
+		ipareg_construct_qsb_max_reads, ipareg_parse_qsb_max_reads,
 		0x00000078, 0, 0, 0, 0},
 	[IPA_HW_v3_0][IPA_DPS_SEQUENCER_FIRST] = {
 		ipareg_construct_dummy, ipareg_parse_dummy,
