@@ -17,6 +17,7 @@
 #include <linux/timer.h>
 #include <linux/jiffies.h>
 #include <linux/sched/task.h>
+#include <linux/rtc.h>
 #ifdef CONFIG_DIAG_OVER_USB
 #include <linux/usb/usbdiag.h>
 #endif
@@ -647,15 +648,15 @@ void diag_record_stats(int type, int flag)
 
 void diag_get_timestamp(char *time_str)
 {
-	struct timeval t;
-	struct tm broken_tm;
+	struct timespec64 t;
+	struct rtc_time broken_tm;
 
-	do_gettimeofday(&t);
+	ktime_get_real_ts64(&t);
 	if (!time_str)
 		return;
-	time_to_tm(t.tv_sec, 0, &broken_tm);
+	rtc_time_to_tm(t.tv_sec, &broken_tm);
 	scnprintf(time_str, DIAG_TS_SIZE, "%d:%d:%d:%ld", broken_tm.tm_hour,
-				broken_tm.tm_min, broken_tm.tm_sec, t.tv_usec);
+				broken_tm.tm_min, broken_tm.tm_sec, t.tv_nsec);
 }
 
 int diag_get_remote(int remote_info)

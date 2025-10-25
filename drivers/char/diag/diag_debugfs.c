@@ -56,7 +56,6 @@ static ssize_t diag_dbgfs_read_status(struct file *file, char __user *ubuf,
 		return -ENOMEM;
 	buf_size = ksize(buf);
 	ret = scnprintf(buf, buf_size,
-		"CPU Tools ID: %d\n"
 		"Check Polling Response: %d\n"
 		"Polling Registered: %d\n"
 		"Uses Device Tree: %d\n"
@@ -73,8 +72,6 @@ static ssize_t diag_dbgfs_read_status(struct file *file, char __user *ubuf,
 		"Uses Time API: %d\n"
 		"Supports PD buffering: %d\n"
 		"Diag_id Feature mask support:%d\n",
-		chk_config_get_id(),
-		chk_polling_response(),
 		driver->polling_reg_flag,
 		driver->use_device_tree,
 		driver->supports_separate_cmdrsp,
