@@ -27,8 +27,6 @@ int diagfwd_init(void);
 void diagfwd_exit(void);
 void diag_process_hdlc_pkt(void *data, unsigned int len, int pid);
 void diag_process_non_hdlc_pkt(unsigned char *data, int len, int pid);
-int chk_config_get_id(void);
-int chk_apps_only(void);
 int chk_apps_master(void);
 int chk_polling_response(void);
 int diag_cmd_log_on_demand(unsigned char *src_buf, int src_len,

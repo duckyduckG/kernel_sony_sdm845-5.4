@@ -116,14 +116,6 @@ static int diag_check_update(int md_peripheral, int pid)
 
 static int diag_apps_responds(void)
 {
-	/*
-	 * Apps processor should respond to mask commands only if the
-	 * Modem channel is up, the feature mask is received from Modem
-	 * and if Modem supports Mask Centralization.
-	 */
-	if (!chk_apps_only())
-		return 0;
-
 	if (driver->diagfwd_cntl[PERIPHERAL_MODEM] &&
 	    driver->diagfwd_cntl[PERIPHERAL_MODEM]->ch_open &&
 	    driver->feature[PERIPHERAL_MODEM].rcvd_feature_mask) {

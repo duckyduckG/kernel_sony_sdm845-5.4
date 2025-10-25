@@ -83,54 +83,6 @@ static int has_device_tree(void)
 }
 #endif
 
-int chk_config_get_id(void)
-{
-	switch (socinfo_get_msm_cpu()) {
-	case MSM_CPU_8960:
-	case MSM_CPU_8960AB:
-		return AO8960_TOOLS_ID;
-	case MSM_CPU_8064:
-		return APQ8064_TOOLS_ID;
-	case MSM_CPU_8974:
-		return MSM8974_TOOLS_ID;
-	case MSM_CPU_8084:
-		return APQ8084_TOOLS_ID;
-	case MSM_CPU_8916:
-		return MSM8916_TOOLS_ID;
-	case MSM_CPU_8996:
-		return MSM_8996_TOOLS_ID;
-	default:
-		if (driver->use_device_tree) {
-			if (machine_is_msm8974())
-				return MSM8974_TOOLS_ID;
-			else
-				return 0;
-		} else {
-			return 0;
-		}
-	}
-}
-
-/*
- * This will return TRUE for targets which support apps only mode and hence SSR.
- * This applies to 8960 and newer targets.
- */
-int chk_apps_only(void)
-{
-	if (driver->use_device_tree)
-		return 1;
-
-	switch (socinfo_get_msm_cpu()) {
-	case MSM_CPU_8960:
-	case MSM_CPU_8960AB:
-	case MSM_CPU_8064:
-	case MSM_CPU_8974:
-		return 1;
-	default:
-		return 0;
-	}
-}
-
 /*
  * This will return TRUE for targets which support apps as master.
  * Thus, SW DLOAD and Mode Reset are supported on apps processor.
@@ -1321,8 +1273,6 @@ int diag_process_apps_pkt(unsigned char *buf, int len, int pid)
 			for (i = 1; i < 8; i++)
 				driver->apps_rsp_buf[i] = 0;
 			/* Tools ID for APQ 8060 */
-			*(int *)(driver->apps_rsp_buf + 8) =
-							 chk_config_get_id();
 			*(unsigned char *)(driver->apps_rsp_buf + 12) = '\0';
 			*(unsigned char *)(driver->apps_rsp_buf + 13) = '\0';
 			diag_send_rsp(driver->apps_rsp_buf, 14, pid);
@@ -1383,10 +1333,6 @@ int diag_process_apps_pkt(unsigned char *buf, int len, int pid)
 		return 0;
 	}
 #endif
-
-	/* We have now come to the end of the function. */
-	if (chk_apps_only())
-		diag_send_error_rsp(buf, len, pid);
 
 	return 0;
 }
