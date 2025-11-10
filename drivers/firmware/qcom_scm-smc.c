@@ -1933,8 +1933,13 @@ int __qcom_scm_config_set_ice_key(struct device *dev, uint32_t index,
 	desc.args[3] = cipher;
 	desc.args[4] = data_unit;
 	desc.args[5] = food;
+#ifdef CONFIG_ARCH_SM8150
+	desc.arginfo = QCOM_SCM_ARGS(5, QCOM_SCM_VAL, QCOM_SCM_RW, QCOM_SCM_VAL,
+				     QCOM_SCM_VAL, QCOM_SCM_VAL);
+#else
 	desc.arginfo = QCOM_SCM_ARGS(6, QCOM_SCM_VAL, QCOM_SCM_RW, QCOM_SCM_VAL,
 				     QCOM_SCM_VAL, QCOM_SCM_VAL, QCOM_SCM_VAL);
+#endif
 
 	ret = qcom_scm_call_noretry(dev, &desc);
 	if (ret)
