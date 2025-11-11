@@ -1920,6 +1920,7 @@ int __qcom_scm_config_set_ice_key(struct device *dev, uint32_t index,
 				  uint32_t cipher, unsigned int data_unit,
 				  unsigned int food)
 {
+	int ret;
 	struct qcom_scm_desc desc = {
 		.svc = QCOM_SCM_SVC_ES,
 		.cmd = QCOM_SCM_ES_CONFIG_SET_ICE_KEY,
@@ -1935,12 +1936,19 @@ int __qcom_scm_config_set_ice_key(struct device *dev, uint32_t index,
 	desc.arginfo = QCOM_SCM_ARGS(6, QCOM_SCM_VAL, QCOM_SCM_RW, QCOM_SCM_VAL,
 				     QCOM_SCM_VAL, QCOM_SCM_VAL, QCOM_SCM_VAL);
 
-	return qcom_scm_call_noretry(dev, &desc);
+	ret = qcom_scm_call_noretry(dev, &desc);
+	if (ret)
+		pr_err("Failed to set ice key=0x%x\n", ret);
+	else
+		pr_err("successfully set ice key=0x%x\n", ret);
+
+	return ret;
 }
 
 int __qcom_scm_clear_ice_key(struct device *dev, uint32_t index,
 			     unsigned int food)
 {
+	int ret;
 	struct qcom_scm_desc desc = {
 		.svc = QCOM_SCM_SVC_ES,
 		.cmd = QCOM_SCM_ES_CLEAR_ICE_KEY,
@@ -1951,7 +1959,13 @@ int __qcom_scm_clear_ice_key(struct device *dev, uint32_t index,
 	desc.args[1] = food;
 	desc.arginfo = QCOM_SCM_ARGS(2);
 
-	return qcom_scm_call_noretry(dev, &desc);
+	ret = qcom_scm_call_noretry(dev, &desc);
+	if (ret)
+		pr_err("Failed to clear ice key=0x%x\n", ret);
+	else
+		pr_err("successfully cleared ice key=0x%x\n", ret);
+
+	return ret;
 }
 
 int __qcom_scm_hdcp_req(struct device *dev, struct qcom_scm_hdcp_req *req,

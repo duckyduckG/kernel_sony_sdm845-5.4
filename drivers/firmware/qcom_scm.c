@@ -851,6 +851,7 @@ int qcom_scm_config_set_ice_key(uint32_t index, phys_addr_t paddr, size_t size,
 				uint32_t cipher, unsigned int data_unit,
 				unsigned int food)
 {
+	pr_crit("Calling SCM to set ice key\n");
 	return __qcom_scm_config_set_ice_key(__scm->dev, index, paddr, size,
 					     cipher, data_unit, food);
 }
@@ -858,6 +859,7 @@ EXPORT_SYMBOL(qcom_scm_config_set_ice_key);
 
 int qcom_scm_clear_ice_key(uint32_t index,  unsigned int food)
 {
+	pr_crit("Calling SCM to clear ice key\n");
 	return __qcom_scm_clear_ice_key(__scm->dev, index, food);
 }
 EXPORT_SYMBOL(qcom_scm_clear_ice_key);
