@@ -38,7 +38,7 @@
 	memory { device_type = "memory"; reg = <0 0 0 0>; };
 
 	chosen: chosen {
-		bootargs = "rcupdate.rcu_expedited=1";
+		bootargs = "log_buf_len=4M rcupdate.rcu_expedited=1";
 	};
 
 	reserved_memory: reserved-memory { };
