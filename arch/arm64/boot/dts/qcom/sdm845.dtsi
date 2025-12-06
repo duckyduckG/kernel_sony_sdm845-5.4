@@ -68,6 +68,7 @@
 			cpu-idle-states = <&SLVR_PC &SLVR_RAIL_OFF>;
 			enable-method = "psci";
 			capacity-dmips-mhz = <1024>;
+			dynamic-power-coefficient = <100>;
 			cache-size = <0x8000>;
 			cpu-release-addr = <0x0 0x90000000>;
 			qcom,freq-domain = <&cpufreq_hw 0 4>;
@@ -107,6 +108,7 @@
 			cpu-idle-states = <&SLVR_PC &SLVR_RAIL_OFF>;
 			enable-method = "psci";
 			capacity-dmips-mhz = <1024>;
+			dynamic-power-coefficient = <100>;
 			cache-size = <0x8000>;
 			cpu-release-addr = <0x0 0x90000000>;
 			qcom,freq-domain = <&cpufreq_hw 0 4>;
@@ -140,6 +142,7 @@
 			cpu-idle-states = <&SLVR_PC &SLVR_RAIL_OFF>;
 			enable-method = "psci";
 			capacity-dmips-mhz = <1024>;
+			dynamic-power-coefficient = <100>;
 			cache-size = <0x8000>;
 			cpu-release-addr = <0x0 0x90000000>;
 			qcom,freq-domain = <&cpufreq_hw 0 4>;
@@ -173,6 +176,7 @@
 			cpu-idle-states = <&SLVR_PC &SLVR_RAIL_OFF>;
 			enable-method = "psci";
 			capacity-dmips-mhz = <1024>;
+			dynamic-power-coefficient = <100>;
 			cache-size = <0x8000>;
 			cpu-release-addr = <0x0 0x90000000>;
 			qcom,freq-domain = <&cpufreq_hw 0 4>;
@@ -206,6 +210,7 @@
 			cpu-idle-states = <&GOLD_PC &GOLD_RAIL_OFF>;
 			enable-method = "psci";
 			capacity-dmips-mhz = <1740>;
+			dynamic-power-coefficient = <396>;
 			cache-size = <0x20000>;
 			cpu-release-addr = <0x0 0x90000000>;
 			qcom,freq-domain = <&cpufreq_hw 1 4>;
@@ -239,6 +244,7 @@
 			cpu-idle-states = <&GOLD_PC &GOLD_RAIL_OFF>;
 			enable-method = "psci";
 			capacity-dmips-mhz = <1740>;
+			dynamic-power-coefficient = <396>;
 			cache-size = <0x20000>;
 			cpu-release-addr = <0x0 0x90000000>;
 			qcom,freq-domain = <&cpufreq_hw 1 4>;
@@ -272,6 +278,7 @@
 			cpu-idle-states = <&GOLD_PC &GOLD_RAIL_OFF>;
 			enable-method = "psci";
 			capacity-dmips-mhz = <1740>;
+			dynamic-power-coefficient = <396>;
 			cache-size = <0x20000>;
 			cpu-release-addr = <0x0 0x90000000>;
 			qcom,freq-domain = <&cpufreq_hw 1 4>;
@@ -305,6 +312,7 @@
 			cpu-idle-states = <&GOLD_PC &GOLD_RAIL_OFF>;
 			enable-method = "psci";
 			capacity-dmips-mhz = <1740>;
+			dynamic-power-coefficient = <396>;
 			cache-size = <0x20000>;
 			cpu-release-addr = <0x0 0x90000000>;
 			qcom,freq-domain = <&cpufreq_hw 1 4>;
