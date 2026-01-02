@@ -821,6 +821,8 @@
 		num-ipe = <2>;
 		num-bps = <1>;
 		status = "ok";
+		icp_pc_en;
+		ipe_bps_pc_en;
 	};
 
 	cam_a5: qcom,a5@ac00000 {
