@@ -19,9 +19,9 @@
 #include <linux/platform_device.h>
 #include <linux/pm_qos.h>
 #include <linux/spinlock.h>
+#include <linux/interconnect.h>
 #include "vidc_hfi_api.h"
 #include "vidc_hfi_helper.h"
-#include "vidc_hfi_api.h"
 #include "vidc_hfi.h"
 #include "msm_vidc_resources.h"
 #include "hfi_packetization.h"

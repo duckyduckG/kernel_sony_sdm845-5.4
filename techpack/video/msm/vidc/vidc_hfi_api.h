@@ -1398,15 +1398,15 @@ static inline enum vidc_vote_data_session VIDC_VOTE_DATA_SESSION_VAL(
 	return (1 << ilog2(c) * 2) | ((d - 1) << (ilog2(c) * 2 + 1));
 }
 
-struct msm_vidc_gov_data {
-	struct vidc_bus_vote_data *data;
-	u32 data_count;
-};
-
 enum msm_vidc_power_mode {
 	VIDC_POWER_NORMAL = 0,
 	VIDC_POWER_LOW,
 	VIDC_POWER_TURBO
+};
+
+struct msm_vidc_gov_data {
+	struct vidc_bus_vote_data *data;
+	u32 data_count;
 };
 
 struct vidc_bus_vote_data {

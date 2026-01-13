@@ -202,7 +202,7 @@ static struct lut {
 	},
 };
 
-static u32 get_type_frm_name(char *name)
+static u32 get_type_frm_name(const char *name)
 {
 	if (!strcmp(name, "venus-llcc"))
 		return LLCC;
@@ -284,13 +284,13 @@ static void __dump(struct dump dump[], int len)
 }
 
 static unsigned long __calculate_vpe(struct vidc_bus_vote_data *d,
-		enum vidc_bus_type type)
+            enum vidc_bus_type type)
 {
 	return 0;
 }
 
 static unsigned long __calculate_cvp(struct vidc_bus_vote_data *d,
-		enum vidc_bus_type type)
+            enum vidc_bus_type type)
 {
 	unsigned long ret = 0;
 
@@ -937,6 +937,6 @@ unsigned long __calc_bw(struct bus_info *bus,
 		ab_kbps += __calculate(&vidc_data->data[c], type);
 
 exit:
-	trace_msm_vidc_perf_bus_vote(bus->name, ab_kbps);
+	// trace_msm_vidc_perf_bus_vote(bus->name, ab_kbps);
 	return ab_kbps;
 }

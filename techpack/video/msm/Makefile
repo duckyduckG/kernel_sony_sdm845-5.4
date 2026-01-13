@@ -12,7 +12,6 @@ msm-vidc-objs := vidc/msm_v4l2_vidc.o \
                 vidc/msm_cvp.o \
                 vidc/msm_smem.o \
                 vidc/msm_vidc_debug.o \
-                vidc/msm_vidc_ar50_dyn_gov.o \
                 vidc/msm_vidc_dyn_gov.o \
                 vidc/msm_vidc_res_parse.o \
                 vidc/venus_hfi.o \

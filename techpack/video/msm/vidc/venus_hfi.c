@@ -11,7 +11,6 @@
  *
  */
 
-#include <asm/dma-iommu.h>
 #include <asm/memory.h>
 #include <linux/clk/qcom.h>
 #include <linux/coresight-stm.h>
@@ -29,7 +28,7 @@
 #include <linux/platform_device.h>
 #include <linux/soc/qcom/llcc-qcom.h>
 #include <soc/qcom/cx_ipeak.h>
-#include <soc/qcom/scm.h>
+#include <linux/qcom_scm.h>
 #include <soc/qcom/socinfo.h>
 #include <linux/soc/qcom/smem.h>
 #include <soc/qcom/subsystem_restart.h>
@@ -50,19 +49,12 @@
 
 static struct hal_device_data hal_ctxt;
 
-#define TZBSP_MEM_PROTECT_VIDEO_VAR 0x8
 struct tzbsp_memprot {
 	u32 cp_start;
 	u32 cp_size;
 	u32 cp_nonpixel_start;
 	u32 cp_nonpixel_size;
 };
-
-struct tzbsp_resp {
-	int ret;
-};
-
-#define TZBSP_VIDEO_SET_STATE 0xa
 
 /* Poll interval in uS */
 #define POLL_INTERVAL_US 50
@@ -71,11 +63,6 @@ enum tzbsp_video_state {
 	TZBSP_VIDEO_STATE_SUSPEND = 0,
 	TZBSP_VIDEO_STATE_RESUME = 1,
 	TZBSP_VIDEO_STATE_RESTORE_THRESHOLD = 2,
-};
-
-struct tzbsp_video_set_state_req {
-	u32 state; /* should be tzbsp_video_state enum value */
-	u32 spare; /* reserved for future, should be zero */
 };
 
 const struct msm_vidc_gov_data DEFAULT_BUS_VOTE = {
@@ -986,22 +973,15 @@ static void __set_threshold_registers(struct venus_hfi_device *device)
 }
 
 static int __vote_bandwidth(struct bus_info *bus,
-		unsigned long *freq)
+		unsigned long bw_kbps)
 {
 	int rc = 0;
-	uint64_t ab = 0;
 
-	if (*freq)
-		*freq = clamp_t(typeof(*freq), *freq, bus->range[0],
-				bus->range[1]);
-
-	/* Bus Driver expects values in Bps */
-	ab = *freq * 1000;
-	dprintk(VIDC_PROF, "Voting bus %s to ab %llu\n", bus->name, ab);
-	rc = msm_bus_scale_update_bw(bus->client, ab, 0);
+	dprintk(VIDC_PROF, "Voting bus %s to ab %llu kbps\n", bus->name, bw_kbps);
+	rc = icc_set_bw(bus->path, kbps_to_icc(bw_kbps), 0);
 	if (rc)
 		dprintk(VIDC_ERR, "Failed voting bus %s to ab %llu, rc=%d\n",
-				bus->name, ab, rc);
+				bus->name, bw_kbps, rc);
 
 	return rc;
 }
@@ -1010,23 +990,16 @@ static int __unvote_buses(struct venus_hfi_device *device)
 {
 	int rc = 0;
 	struct bus_info *bus = NULL;
-	unsigned long freq = 0, zero = 0;
+	unsigned long freq = 0;
 
 	kfree(device->bus_vote.data);
 	device->bus_vote.data = NULL;
 	device->bus_vote.data_count = 0;
 
 	venus_hfi_for_each_bus(device, bus) {
-		if (!bus->is_prfm_gov_used) {
-			if (bus->is_ar50_gov_used)
-				freq = __calc_bw_ar50(bus, &device->bus_vote);
-			else
-				freq = __calc_bw(bus, &device->bus_vote);
-			rc = __vote_bandwidth(bus, &freq);
-		}
-		else
-			rc = __vote_bandwidth(bus, &zero);
-
+		/* TODO: Update calc_bw logic */
+		freq = __calc_bw(bus, &device->bus_vote);
+		rc = __vote_bandwidth(bus, freq);
 		if (rc)
 			goto err_unknown_device;
 	}
@@ -1041,7 +1014,7 @@ static int __vote_buses(struct venus_hfi_device *device,
 	int rc = 0;
 	struct bus_info *bus = NULL;
 	struct vidc_bus_vote_data *new_data = NULL;
-	unsigned long freq = 0;
+	unsigned long bw_kbps = 0;
 
 	if (!num_data) {
 		dprintk(VIDC_DBG, "No vote data available\n");
@@ -1064,19 +1037,10 @@ no_data_count:
 	device->bus_vote.data_count = num_data;
 
 	venus_hfi_for_each_bus(device, bus) {
-		if (bus && bus->client) {
-			if (!bus->is_prfm_gov_used) {
-				if (bus->is_ar50_gov_used)
-					freq = __calc_bw_ar50(bus, &device->bus_vote);
-				else
-					freq = __calc_bw(bus, &device->bus_vote);
-			} else {
-				freq = bus->range[1];
-				dprintk(VIDC_DBG, "%s %s perf Vote %u\n",
-						__func__, bus->name,
-						bus->range[1]);
-			}
-			rc = __vote_bandwidth(bus, &freq);
+		/* TODO: Update calc_bw logic */
+		if (bus && bus->path) {
+			bw_kbps = __calc_bw(bus, &device->bus_vote);
+			rc = __vote_bandwidth(bus, bw_kbps);
 		} else {
 			dprintk(VIDC_ERR, "No BUS to Vote\n");
 		}
@@ -1162,23 +1126,7 @@ err_create_pkt:
 
 static int __tzbsp_set_video_state(enum tzbsp_video_state state)
 {
-	struct tzbsp_video_set_state_req cmd = {0};
-	int tzbsp_rsp = 0;
-	int rc = 0;
-	struct scm_desc desc = {0};
-
-	desc.args[0] = cmd.state = state;
-	desc.args[1] = cmd.spare = 0;
-	desc.arginfo = SCM_ARGS(2);
-
-	rc = scm_call2(SCM_SIP_FNID(SCM_SVC_BOOT,
-			TZBSP_VIDEO_SET_STATE), &desc);
-	tzbsp_rsp = desc.ret[0];
-
-	if (rc) {
-		dprintk(VIDC_ERR, "Failed scm_call %d\n", rc);
-		return rc;
-	}
+	int tzbsp_rsp = qcom_scm_set_remote_state(state, 0);
 
 	dprintk(VIDC_DBG, "Set state %d, resp %d\n", state, tzbsp_rsp);
 	if (tzbsp_rsp) {
@@ -2154,10 +2102,10 @@ static int venus_hfi_core_init(void *device)
 	__dsp_send_hfi_queue(device);
 
 	if (dev->res->pm_qos_latency_us) {
-#ifdef CONFIG_SMP
-		dev->qos.type = PM_QOS_REQ_AFFINE_IRQ;
-		dev->qos.irq = dev->hal_data->irq;
-#endif
+// #ifdef CONFIG_SMP
+// 		dev->qos.type = PM_QOS_REQ_AFFINE_IRQ;
+// 		dev->qos.irq = dev->hal_data->irq;
+// #endif
 		pm_qos_add_request(&dev->qos, PM_QOS_CPU_DMA_LATENCY,
 				dev->res->pm_qos_latency_us);
 	}
@@ -3868,13 +3816,13 @@ static inline void __disable_unprepare_clks(struct venus_hfi_device *device)
 	venus_hfi_for_each_clock_reverse(device, cl) {
 		dprintk(VIDC_DBG, "Clock: %s disable and unprepare\n",
 				cl->name);
-		rc = clk_set_flags(cl->clk, CLKFLAG_NORETAIN_PERIPH);
+		rc = qcom_clk_set_flags(cl->clk, CLKFLAG_NORETAIN_PERIPH);
 		if (rc) {
 			dprintk(VIDC_WARN,
 				"Failed set flag NORETAIN_PERIPH %s\n",
 					cl->name);
 		}
-		rc = clk_set_flags(cl->clk, CLKFLAG_NORETAIN_MEM);
+		rc = qcom_clk_set_flags(cl->clk, CLKFLAG_NORETAIN_MEM);
 		if (rc) {
 			dprintk(VIDC_WARN,
 				"Failed set flag NORETAIN_MEM %s\n",
@@ -3970,13 +3918,13 @@ static inline int __prepare_enable_clks(struct venus_hfi_device *device)
 			__set_clk_rate(device, cl,
 					clk_round_rate(cl->clk, 0));
 
-		rc = clk_set_flags(cl->clk, CLKFLAG_RETAIN_PERIPH);
+		rc = qcom_clk_set_flags(cl->clk, CLKFLAG_RETAIN_PERIPH);
 		if (rc) {
 			dprintk(VIDC_WARN,
 				"Failed set flag RETAIN_PERIPH %s\n",
 					cl->name);
 		}
-		rc = clk_set_flags(cl->clk, CLKFLAG_RETAIN_MEM);
+		rc = qcom_clk_set_flags(cl->clk, CLKFLAG_RETAIN_MEM);
 		if (rc) {
 			dprintk(VIDC_WARN,
 				"Failed set flag RETAIN_MEM %s\n",
@@ -4017,8 +3965,8 @@ static void __deinit_bus(struct venus_hfi_device *device)
 	device->bus_vote = DEFAULT_BUS_VOTE;
 
 	venus_hfi_for_each_bus_reverse(device, bus) {
-		msm_bus_scale_unregister(bus->client);
-		bus->client = NULL;
+		icc_put(bus->path);
+		bus->path = NULL;
 	}
 }
 
@@ -4031,21 +3979,21 @@ static int __init_bus(struct venus_hfi_device *device)
 		return -EINVAL;
 
 	venus_hfi_for_each_bus(device, bus) {
-		if (!strcmp(bus->mode, "msm-vidc-llcc")) {
+		if (!strcmp(bus->name, "venus-llcc")) {
 			if (msm_vidc_syscache_disable) {
 				dprintk(VIDC_DBG,
-					 "Skipping LLC bus init %s: %s\n",
-				bus->name, bus->mode);
+					 "Skipping LLC bus init: %s\n",
+					bus->name);
 				continue;
 			}
 		}
-		bus->client = msm_bus_scale_register(bus->master, bus->slave,
-				bus->name, false);
-		if (IS_ERR_OR_NULL(bus->client)) {
-			rc = PTR_ERR(bus->client) ?: -EBADHANDLE;
+		bus->path = of_icc_get(bus->dev, bus->name);
+		if (IS_ERR_OR_NULL(bus->path)) {
+			rc = PTR_ERR(bus->path) ?
+				PTR_ERR(bus->path) : -EBADHANDLE;
 			dprintk(VIDC_ERR, "Failed to register bus %s: %d\n",
 					bus->name, rc);
-			bus->client = NULL;
+			bus->path = NULL;
 			goto err_add_dev;
 		}
 	}
@@ -4226,10 +4174,8 @@ static void __deinit_resources(struct venus_hfi_device *device)
 static int __protect_cp_mem(struct venus_hfi_device *device)
 {
 	struct tzbsp_memprot memprot;
-	unsigned int resp = 0;
 	int rc = 0;
 	struct context_bank_info *cb;
-	struct scm_desc desc = {0};
 
 	if (!device)
 		return -EINVAL;
@@ -4241,17 +4187,14 @@ static int __protect_cp_mem(struct venus_hfi_device *device)
 
 	list_for_each_entry(cb, &device->res->context_banks, list) {
 		if (!strcmp(cb->name, "venus_ns")) {
-			desc.args[1] = memprot.cp_size =
-				cb->addr_range.start;
+			memprot.cp_size = cb->addr_range.start;
 			dprintk(VIDC_DBG, "%s memprot.cp_size: %#x\n",
 				__func__, memprot.cp_size);
 		}
 
 		if (!strcmp(cb->name, "venus_sec_non_pixel")) {
-			desc.args[2] = memprot.cp_nonpixel_start =
-				cb->addr_range.start;
-			desc.args[3] = memprot.cp_nonpixel_size =
-				cb->addr_range.size;
+			memprot.cp_nonpixel_start = cb->addr_range.start;
+			memprot.cp_nonpixel_size = cb->addr_range.size;
 			dprintk(VIDC_DBG,
 				"%s memprot.cp_nonpixel_start: %#x size: %#x\n",
 				__func__, memprot.cp_nonpixel_start,
@@ -4259,15 +4202,11 @@ static int __protect_cp_mem(struct venus_hfi_device *device)
 		}
 	}
 
-	desc.arginfo = SCM_ARGS(4);
-	rc = scm_call2(SCM_SIP_FNID(SCM_SVC_MP,
-			   TZBSP_MEM_PROTECT_VIDEO_VAR), &desc);
-	resp = desc.ret[0];
+	rc = qcom_scm_mem_protect_video(memprot.cp_start, memprot.cp_size,
+			memprot.cp_nonpixel_start, memprot.cp_nonpixel_size);
 
-	if (rc) {
-		dprintk(VIDC_ERR, "Failed to protect memory(%d) response: %d\n",
-				rc, resp);
-	}
+	if (rc)
+		dprintk(VIDC_ERR, "Failed to protect memory(%d)\n", rc);
 
 	trace_venus_hfi_var_done(
 		memprot.cp_start, memprot.cp_size,
@@ -4768,10 +4707,10 @@ static inline int __resume(struct venus_hfi_device *device)
 	__set_threshold_registers(device);
 
 	if (device->res->pm_qos_latency_us) {
-#ifdef CONFIG_SMP
-		device->qos.type = PM_QOS_REQ_AFFINE_IRQ;
-		device->qos.irq = device->hal_data->irq;
-#endif
+// #ifdef CONFIG_SMP
+// 		device->qos.type = PM_QOS_REQ_AFFINE_IRQ;
+// 		device->qos.irq = device->hal_data->irq;
+// #endif
 		pm_qos_add_request(&device->qos, PM_QOS_CPU_DMA_LATENCY,
 				device->res->pm_qos_latency_us);
 	}

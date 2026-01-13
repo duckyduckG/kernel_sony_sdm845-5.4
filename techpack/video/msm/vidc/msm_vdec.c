@@ -12,7 +12,7 @@
  */
 
 #include <linux/slab.h>
-#include <soc/qcom/scm.h>
+#include <linux/qcom_scm.h>
 #include "msm_vidc_internal.h"
 #include "msm_vidc_common.h"
 #include "vidc_hfi_api.h"
@@ -1395,7 +1395,7 @@ int msm_vdec_s_ext_ctrl(struct msm_vidc_inst *inst,
 
 	hdev = inst->core->device;
 
-	v4l2_try_ext_ctrls(&inst->ctrl_handler, ctrl);
+	v4l2_try_ext_ctrls(&inst->ctrl_handler, NULL, ctrl);
 
 	ext_control = ctrl->controls;
 
