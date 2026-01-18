@@ -132,7 +132,7 @@ int msm_vidc_subscribe_event(void *instance,
 int msm_vidc_unsubscribe_event(void *instance,
 		const struct v4l2_event_subscription *sub);
 int msm_vidc_dqevent(void *instance, struct v4l2_event *event);
-int msm_vidc_g_crop(void *instance, struct v4l2_crop *a);
+int msm_vidc_g_crop(void *instance, struct v4l2_selection *s);
 int msm_vidc_enum_framesizes(void *instance, struct v4l2_frmsizeenum *fsize);
 int msm_vidc_private(void *vidc_inst, unsigned int cmd,
 		struct msm_vidc_arg *arg);
