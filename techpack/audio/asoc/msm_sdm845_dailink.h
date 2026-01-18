@@ -483,12 +483,12 @@ SND_SOC_DAILINK_DEFS(quat_mi2s_rx,
 	DAILINK_COMP_ARRAY(COMP_PLATFORM("msm-pcm-routing")));
 #else
 SND_SOC_DAILINK_DEFS(quat_mi2s_rx_tas2559,
-    DAILINK_COMP_ARRAY(COMP_CPU("msm-dai-q6-mi2s.3")),
+    DAILINK_COMP_ARRAY(COMP_CPU("msm-dai-q6-mi2s.6")),
     DAILINK_COMP_ARRAY(COMP_CODEC("tas2559.2-004c", "tas2559 ASI1")),
     DAILINK_COMP_ARRAY(COMP_PLATFORM("msm-pcm-routing")));
 
 SND_SOC_DAILINK_DEFS(quat_mi2s_rx_tas2557,
-    DAILINK_COMP_ARRAY(COMP_CPU("msm-dai-q6-mi2s.3")),
+    DAILINK_COMP_ARRAY(COMP_CPU("msm-dai-q6-mi2s.6")),
     DAILINK_COMP_ARRAY(COMP_CODEC("tas2557.2-004c", "tas2557 ASI1")),
     DAILINK_COMP_ARRAY(COMP_PLATFORM("msm-pcm-routing")));
 #endif
