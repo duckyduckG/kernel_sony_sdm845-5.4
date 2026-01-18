@@ -338,11 +338,11 @@ int msm_vidc_s_ctrl(void *instance, struct v4l2_control *control)
 }
 EXPORT_SYMBOL(msm_vidc_s_ctrl);
 
-int msm_vidc_g_crop(void *instance, struct v4l2_crop *crop)
+int msm_vidc_g_crop(void *instance, struct v4l2_selection *s)
 {
 	struct msm_vidc_inst *inst = instance;
 
-	if (!inst || !crop)
+	if (!inst || (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE))
 		return -EINVAL;
 
 	if (inst->session_type == MSM_VIDC_ENCODER) {
@@ -352,10 +352,19 @@ int msm_vidc_g_crop(void *instance, struct v4l2_crop *crop)
 		return -EPERM;
 	}
 
-	crop->c.left = inst->prop.crop_info.left;
-	crop->c.top = inst->prop.crop_info.top;
-	crop->c.width = inst->prop.crop_info.width;
-	crop->c.height = inst->prop.crop_info.height;
+	switch (s->target) {
+	case V4L2_SEL_TGT_COMPOSE:
+	case V4L2_SEL_TGT_CROP:
+	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+		s->r.left = inst->prop.crop_info.left;
+		s->r.top = inst->prop.crop_info.top;
+		s->r.width = inst->prop.crop_info.width;
+		s->r.height = inst->prop.crop_info.height;
+		break;
+	default:
+		return -EINVAL;
+	}
 
 	return 0;
 }
