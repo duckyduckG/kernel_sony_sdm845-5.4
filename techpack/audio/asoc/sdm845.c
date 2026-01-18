@@ -6034,20 +6034,20 @@ static struct snd_soc_dai_link msm_tavil_be_dai_links[] = {
 		.ops = &msm_be_ops,
 		SND_SOC_DAILINK_REG(slimbus_0_rx),
 	},
-#if !defined(CONFIG_MACH_XIAOMI_SDM845)
 	{
 		.name = LPASS_BE_SLIMBUS_0_TX,
 		.stream_name = "Slimbus Capture",
 		.no_pcm = 1,
 		.dpcm_capture = 1,
 		.id = MSM_BACKEND_DAI_SLIMBUS_0_TX,
+#if !defined(CONFIG_MACH_XIAOMI_SDM845)
 		.init = msm_wsa881x_init,
+#endif
 		.be_hw_params_fixup = msm_be_hw_params_fixup,
 		.ignore_suspend = 1,
 		.ops = &msm_be_ops,
 		SND_SOC_DAILINK_REG(slimbus_0_tx),
 	},
-#endif
 	{
 		.name = LPASS_BE_SLIMBUS_1_RX,
 		.stream_name = "Slimbus1 Playback",
@@ -6427,7 +6427,9 @@ static struct snd_soc_dai_link msm_quat_mi2s_tas2559_dai_links[] = {
 	{
 		.name = LPASS_BE_QUAT_MI2S_RX,
 		.stream_name = "Quaternary MI2S Playback",
+#if IS_ENABLED(CONFIG_AUDIO_QGKI)
 		.dynamic_be = 1,
+#endif /* CONFIG_AUDIO_QGKI */
 		.no_pcm = 1,
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_CBS_CFS,
 		.dpcm_playback = 1,
@@ -6444,7 +6446,9 @@ static struct snd_soc_dai_link msm_quat_mi2s_tas2557_dai_links[] = {
 	{
 		.name = LPASS_BE_QUAT_MI2S_RX,
 		.stream_name = "Quaternary MI2S Playback",
+#if IS_ENABLED(CONFIG_AUDIO_QGKI)
 		.dynamic_be = 1,
+#endif /* CONFIG_AUDIO_QGKI */
 		.no_pcm = 1,
 		.dpcm_playback = 1,
 		.id = MSM_BACKEND_DAI_QUATERNARY_MI2S_RX,
