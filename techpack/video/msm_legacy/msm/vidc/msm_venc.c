@@ -459,13 +459,13 @@ static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 		.id = V4L2_CID_MPEG_VIDC_VIDEO_HEVC_PROFILE,
 		.name = "HEVC Profile",
 		.type = V4L2_CTRL_TYPE_MENU,
-		.minimum = V4L2_MPEG_VIDC_VIDEO_HEVC_PROFILE_MAIN,
-		.maximum = V4L2_MPEG_VIDC_VIDEO_HEVC_PROFILE_MAIN_STILL_PIC,
-		.default_value = V4L2_MPEG_VIDC_VIDEO_HEVC_PROFILE_MAIN,
+		.minimum = V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN,
+		.maximum = V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE,
+		.default_value = V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN,
 		.menu_skip_mask =  ~(
-		(1 << V4L2_MPEG_VIDC_VIDEO_HEVC_PROFILE_MAIN) |
-		(1 << V4L2_MPEG_VIDC_VIDEO_HEVC_PROFILE_MAIN10) |
-		(1 << V4L2_MPEG_VIDC_VIDEO_HEVC_PROFILE_MAIN_STILL_PIC)
+		(1 << V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN) |
+		(1 << V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE) |
+		(1 << V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_10)
 		),
 		.qmenu = hevc_profile,
 	},
@@ -556,12 +556,12 @@ static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 		.name = "Slice Mode",
 		.type = V4L2_CTRL_TYPE_MENU,
 		.minimum = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE,
-		.maximum = V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES,
+		.maximum = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BYTES,
 		.default_value = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE,
 		.menu_skip_mask = ~(
 		(1 << V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE) |
-		(1 << V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB) |
-		(1 << V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES)
+		(1 << V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB) |
+		(1 << V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BYTES)
 		),
 	},
 	{
@@ -1684,10 +1684,10 @@ int msm_venc_s_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 			return rc;
 		}
 		switch (ctrl->val) {
-		case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB:
+		case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB:
 			temp = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB;
 			break;
-		case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES:
+		case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BYTES:
 			temp = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES;
 			break;
 		case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE:
@@ -1728,7 +1728,7 @@ int msm_venc_s_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 
 		temp_ctrl = TRY_GET_CTRL(V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE);
 		if (codecs_supported && temp_ctrl->val ==
-				V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB) {
+				V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB) {
 			property_id = HAL_PARAM_VENC_SLICE_DELIVERY_MODE;
 			enable.enable = true;
 		} else {
@@ -2423,7 +2423,7 @@ int msm_venc_s_ext_ctrl(struct msm_vidc_inst *inst,
 	}
 
 	/* This will check the range for contols and clip if necessary */
-	v4l2_try_ext_ctrls(&inst->ctrl_handler, ctrl);
+	v4l2_try_ext_ctrls(&inst->ctrl_handler, NULL, ctrl);
 
 	hdev = inst->core->device;
 	cap = &inst->capability;
