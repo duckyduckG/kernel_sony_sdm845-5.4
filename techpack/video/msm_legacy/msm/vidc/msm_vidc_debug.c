@@ -654,6 +654,12 @@ void trace_msm_vidc_perf_clock_scale(const char *name, u32 freq)
 	(void) freq;
 }
 
+void trace_msm_vidc_perf_bus_vote(const char *mode, u32 ab)
+{
+	(void) mode;
+	(void) ab;
+}
+
 void trace_venus_hfi_var_done(u32 cp_start, u32 cp_size,
 	u32 cp_nonpixel_start, u32 cp_nonpixel_size)
 

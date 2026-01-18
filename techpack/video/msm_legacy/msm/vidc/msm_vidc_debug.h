@@ -47,6 +47,7 @@ void trace_msm_smem_buffer_dma_op_end(char *s, u32 buffer_type, unsigned long he
 										int map_kernel);
 void trace_msm_v4l2_vidc_buffer_counter(char *s, int etb, int ebd, int ftb, int fbd);
 void trace_msm_vidc_perf_clock_scale(const char *name, u32 freq);
+void trace_msm_vidc_perf_bus_vote(const char *mode, u32 ab);
 void trace_venus_hfi_var_done(u32 cp_start, u32 cp_size,
 							  u32 cp_nonpixel_start, u32 cp_nonpixel_size);
 void trace_msm_v4l2_vidc_buffer_event_start(char *event_type, u32 device_addr,
