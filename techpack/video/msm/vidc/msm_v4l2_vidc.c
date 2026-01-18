@@ -158,8 +158,7 @@ int msm_v4l2_reqbufs(struct file *file, void *fh,
 int msm_v4l2_qbuf(struct file *file, void *fh,
 				struct v4l2_buffer *b)
 {
-	struct video_device *vdev = video_devdata(file);
-	return msm_vidc_qbuf(get_vidc_inst(file, fh), vdev->v4l2_dev->mdev, b);
+	return msm_vidc_qbuf(get_vidc_inst(file, fh), b);
 }
 
 int msm_v4l2_dqbuf(struct file *file, void *fh,
@@ -230,6 +229,14 @@ static int msm_v4l2_g_parm(struct file *file, void *fh,
 	return 0;
 }
 
+static int msm_v4l2_g_crop(struct file *file, void *fh,
+			struct v4l2_crop *a)
+{
+	struct msm_vidc_inst *vidc_inst = get_vidc_inst(file, fh);
+
+	return msm_vidc_g_crop(vidc_inst, a);
+}
+
 static int msm_v4l2_enum_framesizes(struct file *file, void *fh,
 				struct v4l2_frmsizeenum *fsize)
 {
@@ -256,7 +263,8 @@ static long msm_v4l2_default(struct file *file, void *fh,
 
 static const struct v4l2_ioctl_ops msm_v4l2_ioctl_ops = {
 	.vidioc_querycap = msm_v4l2_querycap,
-	.vidioc_enum_fmt_vid_cap = msm_v4l2_enum_fmt,
+	.vidioc_enum_fmt_vid_cap_mplane = msm_v4l2_enum_fmt,
+	.vidioc_enum_fmt_vid_out_mplane = msm_v4l2_enum_fmt,
 	.vidioc_s_fmt_vid_cap_mplane = msm_v4l2_s_fmt,
 	.vidioc_s_fmt_vid_out_mplane = msm_v4l2_s_fmt,
 	.vidioc_g_fmt_vid_cap_mplane = msm_v4l2_g_fmt,
@@ -277,6 +285,7 @@ static const struct v4l2_ioctl_ops msm_v4l2_ioctl_ops = {
 	.vidioc_encoder_cmd = msm_v4l2_encoder_cmd,
 	.vidioc_s_parm = msm_v4l2_s_parm,
 	.vidioc_g_parm = msm_v4l2_g_parm,
+	.vidioc_g_crop = msm_v4l2_g_crop,
 	.vidioc_enum_framesizes = msm_v4l2_enum_framesizes,
 	.vidioc_default = msm_v4l2_default,
 };
@@ -485,6 +494,7 @@ static struct attribute_group msm_vidc_core_attr_group = {
 static const struct of_device_id msm_vidc_dt_match[] = {
 	{.compatible = "qcom,msm-vidc"},
 	{.compatible = "qcom,msm-vidc,context-bank"},
+	{.compatible = "qcom,msm-vidc,bus"},
 	{.compatible = "qcom,msm-vidc,mem-cdsp"},
 	{}
 };
@@ -500,9 +510,6 @@ static int msm_vidc_register_video_device(enum session_type sess_type,
 	core->vdev[sess_type].vdev.vfl_dir = VFL_DIR_M2M;
 	core->vdev[sess_type].type = sess_type;
 	core->vdev[sess_type].vdev.v4l2_dev = &core->v4l2_dev;
-	core->vdev[sess_type].vdev.device_caps =
-	V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE |
-		V4L2_CAP_STREAMING;
 	rc = video_register_device(&core->vdev[sess_type].vdev,
 					VFL_TYPE_GRABBER, nr);
 	if (rc) {
@@ -557,7 +564,6 @@ static int msm_vidc_probe_vidc_device(struct platform_device *pdev)
 		goto err_v4l2_register;
 	}
 
-	dev = &pdev->dev;
 	/* setup the decoder device */
 	rc = msm_vidc_register_video_device(MSM_VIDC_DECODER,
 			nr, core, dev);
@@ -671,6 +677,11 @@ static int msm_vidc_probe_context_bank(struct platform_device *pdev)
 	return read_context_bank_resources_from_dt(pdev);
 }
 
+static int msm_vidc_probe_bus(struct platform_device *pdev)
+{
+	return read_bus_resources_from_dt(pdev);
+}
+
 static int msm_vidc_probe(struct platform_device *pdev)
 {
 	/*
@@ -680,6 +691,9 @@ static int msm_vidc_probe(struct platform_device *pdev)
 	 */
 	if (of_device_is_compatible(pdev->dev.of_node, "qcom,msm-vidc")) {
 		return msm_vidc_probe_vidc_device(pdev);
+	} else if (of_device_is_compatible(pdev->dev.of_node,
+		"qcom,msm-vidc,bus")) {
+		return msm_vidc_probe_bus(pdev);
 	} else if (of_device_is_compatible(pdev->dev.of_node,
 		"qcom,msm-vidc,context-bank")) {
 		return msm_vidc_probe_context_bank(pdev);

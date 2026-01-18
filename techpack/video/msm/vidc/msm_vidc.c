@@ -507,8 +507,7 @@ int msm_vidc_release_buffer(void *instance, int type, unsigned int index)
 }
 EXPORT_SYMBOL(msm_vidc_release_buffer);
 
-int msm_vidc_qbuf(void *instance, struct media_device *mdev,
-		struct v4l2_buffer *b)
+int msm_vidc_qbuf(void *instance, struct v4l2_buffer *b)
 {
 	struct msm_vidc_inst *inst = instance;
 	int rc = 0, i = 0;
@@ -567,7 +566,7 @@ int msm_vidc_qbuf(void *instance, struct media_device *mdev,
 	tag_data.output_tag = b->m.planes[0].reserved[6];
 	msm_comm_store_tags(inst, &tag_data);
 
-	rc = vb2_qbuf(&q->vb2_bufq, mdev, b);
+	rc = vb2_qbuf(&q->vb2_bufq, b);
 	if (rc)
 		dprintk(VIDC_ERR, "Failed to qbuf, %d\n", rc);
 
@@ -1006,7 +1005,7 @@ int msm_vidc_set_internal_config(struct msm_vidc_inst *inst)
 			slice_mode = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE;
 			slice_val = 0;
 		} else if (slice_mode ==
-				    V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB) {
+				    V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB) {
 			if (output_width > 3840 || output_height > 3840 ||
 				mb_per_frame > NUM_MBS_PER_FRAME(3840, 2160) ||
 				fps > 60) {
