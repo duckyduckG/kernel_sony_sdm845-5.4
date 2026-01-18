@@ -158,7 +158,8 @@ int msm_v4l2_reqbufs(struct file *file, void *fh,
 int msm_v4l2_qbuf(struct file *file, void *fh,
 				struct v4l2_buffer *b)
 {
-	return msm_vidc_qbuf(get_vidc_inst(file, fh), b);
+	struct video_device *vdev = video_devdata(file);
+	return msm_vidc_qbuf(get_vidc_inst(file, fh), vdev->v4l2_dev->mdev, b);
 }
 
 int msm_v4l2_dqbuf(struct file *file, void *fh,
@@ -228,7 +229,7 @@ static int msm_v4l2_g_parm(struct file *file, void *fh,
 {
 	return 0;
 }
-
+/* TODO: FIX
 static int msm_v4l2_g_crop(struct file *file, void *fh,
 			struct v4l2_crop *a)
 {
@@ -236,6 +237,7 @@ static int msm_v4l2_g_crop(struct file *file, void *fh,
 
 	return msm_vidc_g_crop(vidc_inst, a);
 }
+*/
 
 static int msm_v4l2_enum_framesizes(struct file *file, void *fh,
 				struct v4l2_frmsizeenum *fsize)
@@ -263,8 +265,7 @@ static long msm_v4l2_default(struct file *file, void *fh,
 
 static const struct v4l2_ioctl_ops msm_v4l2_ioctl_ops = {
 	.vidioc_querycap = msm_v4l2_querycap,
-	.vidioc_enum_fmt_vid_cap_mplane = msm_v4l2_enum_fmt,
-	.vidioc_enum_fmt_vid_out_mplane = msm_v4l2_enum_fmt,
+	.vidioc_enum_fmt_vid_cap = msm_v4l2_enum_fmt,
 	.vidioc_s_fmt_vid_cap_mplane = msm_v4l2_s_fmt,
 	.vidioc_s_fmt_vid_out_mplane = msm_v4l2_s_fmt,
 	.vidioc_g_fmt_vid_cap_mplane = msm_v4l2_g_fmt,
@@ -285,7 +286,8 @@ static const struct v4l2_ioctl_ops msm_v4l2_ioctl_ops = {
 	.vidioc_encoder_cmd = msm_v4l2_encoder_cmd,
 	.vidioc_s_parm = msm_v4l2_s_parm,
 	.vidioc_g_parm = msm_v4l2_g_parm,
-	.vidioc_g_crop = msm_v4l2_g_crop,
+	/* TODO: FIX
+	.vidioc_g_crop = msm_v4l2_g_crop,*/
 	.vidioc_enum_framesizes = msm_v4l2_enum_framesizes,
 	.vidioc_default = msm_v4l2_default,
 };
@@ -563,6 +565,7 @@ static int msm_vidc_probe_vidc_device(struct platform_device *pdev)
 		goto err_v4l2_register;
 	}
 
+	dev = &pdev->dev;
 	/* setup the decoder device */
 	rc = msm_vidc_register_video_device(MSM_VIDC_DECODER,
 			nr, core, dev);
