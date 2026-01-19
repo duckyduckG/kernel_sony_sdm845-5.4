@@ -563,9 +563,18 @@ config MSM_ADSPRPC
 		applications/compute DSP processor.
 		Say M if you want to enable this module.
 
+config MSM_ADSPRPC_LEGACY
+	tristate "QTI FastRPC driver"
+	depends on QCOM_GLINK
+	help
+		Provides a communication mechanism that allows clients to
+		make remote method invocations across processor boundary to
+		applications/compute DSP processor.
+		Say M if you want to enable this module.
+
 config ADSPRPC_QGKI
 	bool "Enable QGKI specific features in fastrpc driver"
-	depends on QGKI
+	depends on QGKI && MSM_ADSPRPC
 	help
 		Certain features in the fastrpc driver are supported only on the
 		QGKI kernel (like I/O coherency for the fastrpc context banks). This
