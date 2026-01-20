@@ -15,6 +15,7 @@
 #define __MSM_VIDC_DEBUG__
 #include <linux/debugfs.h>
 #include <linux/delay.h>
+#include "msm_vidc_events.h"
 #include "msm_vidc_internal.h"
 
 /* Mock all the missing parts for successful compilation starts here */
@@ -23,41 +24,6 @@
 #include <linux/interrupt.h>
 #include <soc/qcom/subsystem_restart.h>
 #include "msm_vidc_internal.h"
-
-#define MAX_TRACER_LOG_LENGTH 128
-
-#define trace_msm_vidc_printf(trace_logbuf, log_length) (void) log_length
-#define trace_msm_v4l2_vidc_fw_load_start(s)
-#define trace_msm_v4l2_vidc_fw_load_end(s)
-
-void trace_msm_v4l2_vidc_open_start(char *s);
-void trace_msm_v4l2_vidc_open_end(char *s);
-void trace_msm_v4l2_vidc_close_start(char *s);
-void trace_msm_v4l2_vidc_close_end(char *s);
-void trace_msm_vidc_common_state_change(void*, enum instance_state ins_state, int state);
-void trace_msm_smem_buffer_iommu_op_start(char *s, int i, int j, unsigned long k,
-										  dma_addr_t iova, unsigned long l);
-void trace_msm_smem_buffer_iommu_op_end(char *s, int i, int j, unsigned long k,
-										  dma_addr_t iova, unsigned long l);
-void trace_msm_smem_buffer_dma_op_start(char *s, u32 buffer_type, unsigned long heap_mask,
-										size_t size, u32 align, u32 flags,
-										int map_kernel);
-void trace_msm_smem_buffer_dma_op_end(char *s, u32 buffer_type, unsigned long heap_mask,
-										size_t size, u32 align, u32 flags,
-										int map_kernel);
-void trace_msm_v4l2_vidc_buffer_counter(char *s, int etb, int ebd, int ftb, int fbd);
-void trace_msm_vidc_perf_clock_scale(const char *name, u32 freq);
-void trace_msm_vidc_perf_bus_vote(const char *mode, u32 ab);
-void trace_venus_hfi_var_done(u32 cp_start, u32 cp_size,
-							  u32 cp_nonpixel_start, u32 cp_nonpixel_size);
-void trace_msm_v4l2_vidc_buffer_event_start(char *event_type, u32 device_addr,
-											int64_t timestamp, u32 alloc_len,
-											u32 filled_len, u32 offset);
-void trace_msm_v4l2_vidc_buffer_event_end(char *event_type, u32 device_addr,
-											int64_t timestamp, u32 alloc_len,
-											u32 filled_len, u32 offset);
-
-void do_gettimeofday(struct timeval *__ddl_tv);
 
 #define SMEM_IMAGE_VERSION_TABLE 469
 /* Mock all the missing parts for successful compilation ends */
@@ -184,7 +150,7 @@ static inline void tic(struct msm_vidc_inst *i, enum profiling_points p,
 		memcpy(i->debug.pdata[p].name, b, 64);
 	if ((msm_vidc_debug & VIDC_PROF) &&
 		i->debug.pdata[p].sampling) {
-		do_gettimeofday(&__ddl_tv);
+		__ddl_tv = ktime_to_timeval(ktime_get_real());
 		i->debug.pdata[p].start =
 			(__ddl_tv.tv_sec * 1000) + (__ddl_tv.tv_usec / 1000);
 			i->debug.pdata[p].sampling = false;
@@ -197,7 +163,7 @@ static inline void toc(struct msm_vidc_inst *i, enum profiling_points p)
 
 	if ((msm_vidc_debug & VIDC_PROF) &&
 		!i->debug.pdata[p].sampling) {
-		do_gettimeofday(&__ddl_tv);
+		__ddl_tv = ktime_to_timeval(ktime_get_real());
 		i->debug.pdata[p].stop = (__ddl_tv.tv_sec * 1000)
 			+ (__ddl_tv.tv_usec / 1000);
 		i->debug.pdata[p].cumulative += i->debug.pdata[p].stop -
