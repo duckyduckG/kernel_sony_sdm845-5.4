@@ -53,7 +53,9 @@ struct step_chg_info {
 	bool			sw_jeita_cfg_valid;
 	bool			soc_based_step_chg;
 	bool			ocv_based_step_chg;
+#ifdef CONFIG_QTI_QBG
 	bool			vbat_avg_based_step_chg;
+#endif
 	bool			batt_missing;
 	bool			taper_fcc;
 	bool			jeita_fcc_scaling;
@@ -110,7 +112,9 @@ static const char * const step_chg_ext_iio_chan[] = {
 	[STEP_QG_TEMP] = "temp",
 	[STEP_QG_CAPACITY] = "capacity",
 	[STEP_QG_VOLTAGE_OCV] = "voltage_ocv",
+#ifdef CONFIG_QTI_QBG
 	[STEP_QG_VOLTAGE_AVG] = "voltage_avg",
+#endif
 };
 
 static bool is_bms_available(struct step_chg_info *chip)
@@ -374,6 +378,7 @@ static int get_step_chg_jeita_setting_from_profile(struct step_chg_info *chip)
 		chip->step_chg_config->param.use_bms = true;
 	}
 
+#ifdef CONFIG_QTI_QBG
 	chip->vbat_avg_based_step_chg =
 				of_property_read_bool(profile_node,
 				"qcom,vbat-avg-based-step-chg");
@@ -386,6 +391,7 @@ static int get_step_chg_jeita_setting_from_profile(struct step_chg_info *chip)
 		chip->step_chg_config->param.fall_hys = 0;
 		chip->step_chg_config->param.use_bms = true;
 	}
+#endif
 
 	chip->step_chg_cfg_valid = true;
 	rc = read_range_data_from_node(profile_node,
