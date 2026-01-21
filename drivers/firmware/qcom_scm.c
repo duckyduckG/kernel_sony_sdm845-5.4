@@ -938,7 +938,7 @@ int qcom_scm_lmh_read_buf_size(int *size)
 }
 EXPORT_SYMBOL(qcom_scm_lmh_read_buf_size);
 
-int qcom_scm_lmh_profile_change(uint32_t profile)
+int qcom_scm_lmh_profile_change(bool profile)
 {
 	return __qcom_scm_lmh_profile_change(__scm->dev, profile);
 }

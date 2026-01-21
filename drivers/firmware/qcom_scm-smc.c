@@ -2004,7 +2004,7 @@ int __qcom_scm_lmh_read_buf_size(struct device *dev, int *size)
 	return ret;
 }
 
-int __qcom_scm_lmh_profile_change(struct device *dev, uint32_t profile)
+int __qcom_scm_lmh_profile_change(struct device *dev, bool profile)
 {
 	struct qcom_scm_desc desc = {
 		.svc = QCOM_SCM_SVC_LMH,

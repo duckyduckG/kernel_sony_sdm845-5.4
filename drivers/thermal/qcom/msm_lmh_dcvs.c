@@ -351,7 +351,7 @@ static int enable_lmh(struct device_node *dn)
 	if (lmh_enabled)
 		return 0;
 
-	ret = qcom_scm_lmh_profile_change(1);
+	ret = qcom_scm_lmh_profile_change(true);
 	if (ret) {
 		pr_err("Error switching profile:[1]. err:%d\n", ret);
 		return ret;
