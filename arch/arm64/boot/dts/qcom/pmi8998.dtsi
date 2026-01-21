@@ -86,7 +86,9 @@
 				      <&pmi8998_fg PSY_IIO_CYCLE_COUNT>,
 				      <&pmi8998_fg PSY_IIO_CHARGE_FULL_DESIGN>,
 				      <&pmi8998_fg PSY_IIO_TIME_TO_FULL_NOW>,
-				      <&pmi8998_fg PSY_IIO_TEMP>;
+				      <&pmi8998_fg PSY_IIO_TEMP>,
+					  <&pmi8998_fg PSY_IIO_RESISTANCE_ID>,
+					  <&pmi8998_fg PSY_IIO_VOLTAGE_OCV>;
 			io-channel-names = "charger_temp",
 					   "charger_temp_max",
 					   "usbin_i",
@@ -100,7 +102,9 @@
 					   "cycle_count",
 					   "charge_full_design",
 					   "time_to_full_now",
-					   "temp";
+					   "temp",
+					   "resistance_id",
+					   "voltage_ocv";
 
 			qcom,boost-threshold-ua = <100000>;
 			qcom,wipower-max-uw = <5000000>;
