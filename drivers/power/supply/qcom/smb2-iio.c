@@ -27,9 +27,25 @@ int smb2_iio_get_prop(struct smb_charger *chg, int channel, int *val)
 	case PSY_IIO_PD_CURRENT_MAX:
 		*val = get_client_vote(chg->usb_icl_votable, PD_VOTER);
 		break;
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	case PSY_IIO_DC_ADAPTER:
+		*val = chg->dc_adapter;
+		break;
+#endif
 	case PSY_IIO_USB_REAL_TYPE:
 		*val = chg->real_charger_type;
 		break;
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	case PSY_IIO_HVDCP3_TYPE:
+		if (chg->real_charger_type == QTI_POWER_SUPPLY_TYPE_USB_HVDCP_3) {
+			*val = HVDCP3_CLASSA_18W;
+			pr_err("SMB2-IIO: HVDCP3_TYPE - CLASSA_18W\n");//debug
+		} else {
+			*val = HVDCP3_NONE;
+			pr_err("SMB2-IIO: HVDCP3_TYPE - NONE\n");//debug
+		}
+		break;
+#endif
 	case PSY_IIO_TYPEC_MODE:
 		if (chg->connector_type == QTI_POWER_SUPPLY_CONNECTOR_MICRO_USB)
 			*val = QTI_POWER_SUPPLY_TYPEC_NONE;
@@ -101,6 +117,11 @@ int smb2_iio_get_prop(struct smb_charger *chg, int channel, int *val)
 		*val = get_client_vote(chg->disable_power_role_switch,
 					      MOISTURE_VOTER);
 		break;
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	case PSY_IIO_TYPE_RECHECK:
+		rc = smblib_get_prop_type_recheck(chg, val);
+		break;
+#endif
 
 	/* MAIN */
 	case PSY_IIO_MAIN_INPUT_CURRENT_SETTLED:
@@ -134,6 +155,11 @@ int smb2_iio_get_prop(struct smb_charger *chg, int channel, int *val)
 		break;
 
 	/* BATTERY */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_THERMAL)
+	case PSY_IIO_DC_THERMAL_LEVELS:
+		rc = smblib_get_prop_dc_temp_level(chg, val);
+		break;
+#endif
 	case PSY_IIO_CHARGER_TEMP:
 		/* do not query RRADC if charger is not present */
 		rc = smblib_get_prop_usb_present(chg, &pval);
@@ -150,6 +176,11 @@ int smb2_iio_get_prop(struct smb_charger *chg, int channel, int *val)
 	case PSY_IIO_SW_JEITA_ENABLED:
 		*val = chg->sw_jeita_enabled;
 		break;
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	case PSY_IIO_DYNAMIC_FV_ENABLED:
+		*val = chg->dynamic_fv_enabled;
+		break;
+#endif
 	case PSY_IIO_PARALLEL_DISABLE:
 		*val = get_client_vote(chg->pl_disable_votable,
 					      USER_VOTER);
@@ -164,6 +195,11 @@ int smb2_iio_get_prop(struct smb_charger *chg, int channel, int *val)
 	case PSY_IIO_RERUN_AICL:
 		*val = 0;
 		break;
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	case PSY_IIO_CHARGER_TYPE:
+		*val = chg->usb_psy_desc.type;
+		break;
+#endif
 	case PSY_IIO_DP_DM:
 		*val = chg->pulse_cnt;
 		break;
@@ -231,7 +267,14 @@ int smb2_iio_set_prop(struct smb_charger *chg, int channel, int val)
 		rc = smblib_set_prop_pd_current_max(chg, val);
 		break;
 	case PSY_IIO_TYPEC_POWER_ROLE:
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+		if (val == QTI_POWER_SUPPLY_TYPEC_PR_DUAL)
+		{
+#endif
 		rc = smblib_set_prop_typec_power_role(chg, val);
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+		}
+#endif
 		break;
 	case PSY_IIO_TYPEC_SRC_RP:
 		rc = smblib_set_prop_typec_select_rp(chg, val);
@@ -261,6 +304,14 @@ int smb2_iio_set_prop(struct smb_charger *chg, int channel, int val)
 	case PSY_IIO_SDP_CURRENT_MAX:
 		rc = smblib_set_prop_sdp_current_max(chg, val);
 		break;
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	case PSY_IIO_RERUN_APSD:
+		rc = smblib_set_prop_rerun_apsd(chg, val);
+		break;
+	case PSY_IIO_TYPE_RECHECK:
+		rc = smblib_set_prop_type_recheck(chg, val);
+		break;
+#endif
 
 	/* MAIN */
 	case PSY_IIO_VOLTAGE_MAX:
@@ -272,6 +323,16 @@ int smb2_iio_set_prop(struct smb_charger *chg, int channel, int val)
 	case PSY_IIO_CURRENT_MAX:
 		rc = smblib_set_icl_current(chg, val);
 		break;
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	case PSY_IIO_DC_ADAPTER:
+		rc = smb2_set_wireless_dc_icl(chg, val);
+		break;
+#if defined(CONFIG_THERMAL)
+	case PSY_IIO_DC_THERMAL_LEVELS:
+		rc = smblib_set_prop_dc_temp_level(chg, val);
+		break;
+#endif
+#endif
 
 	/* BATTERY */
 	case PSY_IIO_PARALLEL_DISABLE:
@@ -306,6 +367,11 @@ int smb2_iio_set_prop(struct smb_charger *chg, int channel, int val)
 				chg->sw_jeita_enabled = !!val;
 		}
 		break;
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	case PSY_IIO_DYNAMIC_FV_ENABLED:
+		chg->dynamic_fv_enabled = !!val;
+		break;
+#endif
 	case PSY_IIO_SET_SHIP_MODE:
 		/* Not in ship mode as long as the device is active */
 		if (!val)

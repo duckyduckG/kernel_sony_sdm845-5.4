@@ -34,6 +34,16 @@ enum smb2_parallel_iio_channels {
 	SMB2_SET_SHIP_MODE,
 };
 
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+enum hvdcp3_type {
+	HVDCP3_NONE = 0,
+	HVDCP3_CLASSA_18W,
+	HVDCP3_CLASSB_27W,
+	USB_PD,
+	HVDCP2_TYPE,
+};
+#endif
+
 struct smb2_iio_prop_channels {
 	const char *datasheet_name;
 	int channel_num;
@@ -138,6 +148,15 @@ static const struct smb2_iio_prop_channels smb2_chans_pmic[] = {
 	SMB2_CHAN_ACTIVITY("battery_force_recharge", FORCE_RECHARGE)
 	SMB2_CHAN_ACTIVITY("battery_fcc_stepper_enable", FCC_STEPPER_ENABLE)
 	SMB2_CHAN_ACTIVITY("charge_qnovo_enable", CHARGE_QNOVO_ENABLE)
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	SMB2_CHAN_ACTIVITY("xm_hvdcp3_type", HVDCP3_TYPE)
+	SMB2_CHAN_ACTIVITY("xm_rerurn_apsd", RERUN_APSD)
+	SMB2_CHAN_ACTIVITY("xm_type_recheck", TYPE_RECHECK)
+	SMB2_CHAN_INDEX("xm_dc_adapter", DC_ADAPTER)
+	SMB2_CHAN_ACTIVITY("xm_dynamic_fv_en", DYNAMIC_FV_ENABLED)
+	SMB2_CHAN_INDEX("xm_charger_type", CHARGER_TYPE)
+	SMB2_CHAN_INDEX("xm_thermal_level", DC_THERMAL_LEVELS)
+#endif
 };
 
 struct iio_channel **get_ext_channels(struct device *dev,
