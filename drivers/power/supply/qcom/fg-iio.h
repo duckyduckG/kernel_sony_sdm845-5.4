@@ -74,6 +74,9 @@ static const struct fg_gen3_iio_channels fg_gen3_iio_psy_channels[] = {
 	FG_GEN3_CHAN_CUR("current_now", PSY_IIO_CURRENT_NOW)
 	FG_GEN3_CHAN_ENERGY("charge_counter", PSY_IIO_CHARGE_COUNTER)
 	FG_GEN3_CHAN_RES("resistance", PSY_IIO_RESISTANCE)
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	FG_GEN3_CHAN_RES("xm_esr", PSY_IIO_ESR)
+#endif
 	FG_GEN3_CHAN_RES("resistance_id", PSY_IIO_RESISTANCE_ID)
 	FG_GEN3_CHAN_ACT("soc_reporting_ready", PSY_IIO_SOC_REPORTING_READY)
 	FG_GEN3_CHAN_INDEX("debug_battery", PSY_IIO_DEBUG_BATTERY)
