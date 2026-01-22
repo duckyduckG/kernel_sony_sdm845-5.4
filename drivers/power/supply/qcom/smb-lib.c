@@ -860,7 +860,7 @@ static const struct apsd_result *smblib_update_usb_type(struct smb_charger *chg)
 	/* if PD is active, APSD is disabled so won't have a valid result */
 	if (chg->pd_active) {
 		chg->real_charger_type = POWER_SUPPLY_TYPE_USB_PD;
-#if defined(CONFIG_MACH_XIAOMI_SDM845)
+#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845) BROKEN
 		chg->usb_psy_desc.type = POWER_SUPPLY_TYPE_USB_PD;
 #endif
 	} else {
@@ -870,11 +870,11 @@ static const struct apsd_result *smblib_update_usb_type(struct smb_charger *chg)
 		 */
 		if (!(apsd_result->val == QTI_POWER_SUPPLY_TYPE_USB_FLOAT &&
 			chg->real_charger_type == POWER_SUPPLY_TYPE_USB))
-#if defined(CONFIG_MACH_XIAOMI_SDM845)
+#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845) BROKEN
 			{
 #endif
 			chg->real_charger_type = apsd_result->val;
-#if defined(CONFIG_MACH_XIAOMI_SDM845)
+#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845) BROKEN
 			chg->usb_psy_desc.type = apsd_result->val;
 		}
 #endif
