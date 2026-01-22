@@ -120,7 +120,9 @@ enum print_reason {
 
 enum {
 	AICL_RERUN_WA_BIT	= BIT(0),
+#if !defined(CONFIG_MACH_XIAOMI_SDM845)
 	FORCE_INOV_DISABLE_BIT	= BIT(1),
+#endif
 };
 
 static int debug_mask;
@@ -1649,6 +1651,7 @@ static int pl_disable_vote_callback(struct votable *votable,
 		rerun_election(chip->fv_votable);
 	}
 
+#if !defined(CONFIG_MACH_XIAOMI_SDM845)
 	/* notify parallel state change */
 	if (!IS_ERR_OR_NULL(chip->iio_chan_list_smb_parallel) &&
 		(chip->pl_disable != pl_disable)
@@ -1656,6 +1659,7 @@ static int pl_disable_vote_callback(struct votable *votable,
 		power_supply_changed(chip->pl_psy);
 		chip->pl_disable = (bool)pl_disable;
 	}
+#endif
 
 	pl_dbg(chip, PR_PARALLEL, "parallel charging %s\n",
 		   pl_disable ? "disabled" : "enabled");
@@ -1737,8 +1741,12 @@ static bool is_parallel_available(struct pl_data *chip)
 	chip->pl_mode = pval.intval;
 
 	/* Disable autonomous votage increments for USBIN-USBIN */
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	if (IS_USBIN(chip->pl_mode)) {
+#else
 	if (IS_USBIN(chip->pl_mode)
 			&& (chip->wa_flags & FORCE_INOV_DISABLE_BIT)) {
+#endif
 		if (!chip->hvdcp_hw_inov_dis_votable)
 			chip->hvdcp_hw_inov_dis_votable =
 					find_votable("HVDCP_HW_INOV_DIS");
@@ -2039,7 +2047,11 @@ static void pl_config_init(struct pl_data *chip, int smb_version)
 	switch (smb_version) {
 	case PMI8998_SUBTYPE:
 	case PM660_SUBTYPE:
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+		chip->wa_flags = AICL_RERUN_WA_BIT;
+#else
 		chip->wa_flags = AICL_RERUN_WA_BIT | FORCE_INOV_DISABLE_BIT;
+#endif
 		break;
 	default:
 		break;
@@ -2188,7 +2200,9 @@ int qcom_batt_init(struct device *dev, struct charger_param *chg_param)
 		goto unreg_notifier;
 	}
 
+#if !defined(CONFIG_MACH_XIAOMI_SDM845)
 	chip->pl_disable = true;
+#endif
 	chip->cp_disabled = true;
 	chip->qcom_batt_class.name = "qcom-battery",
 	chip->qcom_batt_class.owner = THIS_MODULE,

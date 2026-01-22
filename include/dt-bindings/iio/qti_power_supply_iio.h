@@ -183,4 +183,15 @@
 #define PSY_IIO_WARM_TEMP			0x8d
 #define PSY_IIO_FG_RESET_CLOCK			0x8e
 
+/* Xiaomi FG GEN3 */
+#define PSY_IIO_ESR			0x8f
+/* Xiaomi SMB */
+#define PSY_IIO_HVDCP3_TYPE			0x90
+#define PSY_IIO_RERUN_APSD			0x91
+#define PSY_IIO_TYPE_RECHECK        0x92
+#define PSY_IIO_DC_ADAPTER          0x93
+#define PSY_IIO_DYNAMIC_FV_ENABLED  0x94
+#define PSY_IIO_CHARGER_TYPE        0x95
+#define PSY_IIO_DC_THERMAL_LEVELS   0x96
+
 #endif /* __QTI_POWER_SUPPLY_IIO_H__ */

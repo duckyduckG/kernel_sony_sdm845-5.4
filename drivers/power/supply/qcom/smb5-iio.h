@@ -46,6 +46,9 @@ enum smb_parallel_iio_channels {
 	SMB_CHARGER_TEMP,
 	SMB_CHARGER_TEMP_MAX,
 	SMB_SET_SHIP_MODE,
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	SMB_CONNECTOR_HEALTH
+#endif
 };
 
 /* For step-chg-jeita.c */
@@ -56,6 +59,10 @@ enum step_chg_iio_channels {
 	STEP_QG_CAPACITY,
 	STEP_QG_VOLTAGE_OCV,
 	STEP_QG_VOLTAGE_AVG,
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+	STEP_QG_CYCLE_COUNT,
+	STEP_QG_CONSTANT_CHARGE_VOLTAGE,
+#endif
 };
 
 /* For battery.c */
