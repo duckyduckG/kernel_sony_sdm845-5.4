@@ -43,7 +43,7 @@
 		|| ((left) <= (right) && (left) <= (value) \
 			&& (value) <= (right)))
 
-#define PARAM(_id, _addr_word, _addr_byte, _len, _num, _den, _offset,	\
+#define FG_CORE_PARAM(_id, _addr_word, _addr_byte, _len, _num, _den, _offset,	\
 	      _enc, _dec)						\
 	[FG_SRAM_##_id] = {						\
 		.addr_word	= _addr_word,				\
