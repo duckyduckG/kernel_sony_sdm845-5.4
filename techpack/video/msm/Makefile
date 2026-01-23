@@ -12,6 +12,7 @@ msm-vidc-objs := vidc/msm_v4l2_vidc.o \
                 vidc/msm_vidc_debug.o \
                 vidc/msm_vidc_res_parse.o \
                 vidc/hfi_common.o \
+                vidc/hfi_ar50.o \
                 vidc/hfi_ar50_lt.o \
                 vidc/hfi_iris2.o \
                 vidc/hfi_response_handler.o \

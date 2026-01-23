@@ -96,6 +96,19 @@ static struct msm_vidc_codec_data scuba_codec_data[] =  {
         CODEC_ENTRY(V4L2_PIX_FMT_VP9, MSM_VIDC_DECODER, 0, 440, 440),
 };
 
+static struct msm_vidc_codec_data sdm845_codec_data[] =  {
+	CODEC_ENTRY(V4L2_PIX_FMT_H264, MSM_VIDC_ENCODER, 125, 675, 320),
+	CODEC_ENTRY(V4L2_PIX_FMT_HEVC, MSM_VIDC_ENCODER, 125, 675, 320),
+	CODEC_ENTRY(V4L2_PIX_FMT_VP8, MSM_VIDC_ENCODER, 125, 675, 320),
+	/* TODO: SDM845: Bring back or remove FMT_TME */
+	// CODEC_ENTRY(V4L2_PIX_FMT_TME, MSM_VIDC_ENCODER, 0, 540, 540),
+	CODEC_ENTRY(V4L2_PIX_FMT_MPEG2, MSM_VIDC_DECODER, 50, 200, 200),
+	CODEC_ENTRY(V4L2_PIX_FMT_H264, MSM_VIDC_DECODER, 50, 200, 200),
+	CODEC_ENTRY(V4L2_PIX_FMT_HEVC, MSM_VIDC_DECODER, 50, 200, 200),
+	CODEC_ENTRY(V4L2_PIX_FMT_VP8, MSM_VIDC_DECODER, 50, 200, 200),
+	CODEC_ENTRY(V4L2_PIX_FMT_VP9, MSM_VIDC_DECODER, 50, 200, 200),
+};
+
 static struct msm_vidc_codec_data yupik_codec_data[] =  {
 	CODEC_ENTRY(V4L2_PIX_FMT_H264, MSM_VIDC_ENCODER, 25, 675, 320),
 	CODEC_ENTRY(V4L2_PIX_FMT_HEVC, MSM_VIDC_ENCODER, 25, 675, 320),
@@ -2165,6 +2178,73 @@ static struct msm_vidc_common_data scuba_common_data[] = {
 	},
 };
 
+static struct msm_vidc_common_data sdm845_common_data[] = {
+	{
+		.key = "qcom,never-unload-fw",
+		.value = 1,
+	},
+	{
+		.key = "qcom,sw-power-collapse",
+		.value = 1,
+	},
+	{
+		.key = "qcom,domain-attr-non-fatal-faults",
+		.value = 1,
+	},
+	{
+		.key = "qcom,domain-attr-cache-pagetables",
+		.value = 1,
+	},
+	{
+		.key = "qcom,max-secure-instances",
+		.value = 2,
+	},
+	{
+		.key = "qcom,max-hw-load",
+		.value = 3133440,	/* 4096x2176@90 */
+	},
+	{
+		.key = "qcom,max-hq-mbs-per-frame",
+		.value = 8160,
+	},
+	{
+		.key = "qcom,max-hq-mbs-per-sec",
+		.value = 244800,  /* 1920 x 1088 @ 30 fps */
+	},
+	{
+		.key = "qcom,max-b-frame-mbs-per-frame",
+		.value = 8160,
+	},
+	{
+		.key = "qcom,max-b-frame-mbs-per-sec",
+		.value = 489600,
+	},
+	{
+		.key = "qcom,power-collapse-delay",
+		.value = 1500,
+	},
+	{
+		.key = "qcom,hw-resp-timeout",
+		.value = 1000,
+	},
+	{
+		.key = "qcom,debug-timeout",
+		.value = 0,
+	},
+	{
+		.key = "qcom,dcvs",
+		.value = 1,
+	},
+	{
+		.key = "qcom,fw-cycles",
+		.value = 733003,
+	},
+	{
+		.key = "qcom,fw-vpp-cycles",
+		.value = 225975,
+	},
+};
+
 static struct msm_vidc_efuse_data yupik_efuse_data[] = {
 	/* IRIS_PLL_FMAX - max 4K@30 */
 	EFUSE_ENTRY(0x007801E8, 4, 0x00200000, 0x15, SKU_VERSION),
@@ -2359,6 +2439,23 @@ static struct msm_vidc_platform_data scuba_data = {
 	.max_inst_count = MAX_SUPPORTED_INSTANCES,
 };
 
+static struct msm_vidc_platform_data sdm845_data = {
+	.codec_data = sdm845_codec_data,
+	.codec_data_length =  ARRAY_SIZE(sdm845_codec_data),
+	.common_data = sdm845_common_data,
+	.common_data_length =  ARRAY_SIZE(sdm845_common_data),
+	.csc_data.vpe_csc_custom_bias_coeff = vpe_csc_custom_bias_coeff,
+	.csc_data.vpe_csc_custom_matrix_coeff = vpe_csc_custom_matrix_coeff,
+	.csc_data.vpe_csc_custom_limit_coeff = vpe_csc_custom_limit_coeff,
+	.efuse_data = NULL,
+	.efuse_data_length = 0,
+	.sku_version = 0,
+	.vpu_ver = VPU_VERSION_AR50,
+	.num_vpp_pipes = 0x1,
+	.ubwc_config = 0x0,
+	.max_inst_count = MAX_SUPPORTED_INSTANCES,
+};
+
 static const struct of_device_id msm_vidc_dt_device[] = {
 	{
 		.compatible = "qcom,lahaina-vidc",
@@ -2367,6 +2464,10 @@ static const struct of_device_id msm_vidc_dt_device[] = {
 	{
 		.compatible = "qcom,shima-vidc",
 		.data = &shima_data,
+	},
+	{
+		.compatible = "qcom,sdm845-vidc",
+		.data = &sdm845_data,
 	},
 	{
 		.compatible = "qcom,bengal-vidc",
@@ -2496,6 +2597,12 @@ void *vidc_get_drv_data(struct device *dev)
 
 	if (!strcmp(match->compatible, "qcom,lahaina-vidc")) {
 		msm_vidc_ddr_ubwc_config(driver_data, 0xf);
+	} else if (!strcmp(match->compatible, "qcom,sdm845-vidc")) {
+		if (driver_data->sku_version == SKU_VERSION_1) {
+			driver_data->common_data = sdm845_common_data;
+			driver_data->common_data_length =
+					ARRAY_SIZE(sdm845_common_data);
+		}
 	} else if (!strcmp(match->compatible, "qcom,bengal-vidc")) {
 		rc = msm_vidc_read_rank(driver_data, dev);
 		if (rc) {
