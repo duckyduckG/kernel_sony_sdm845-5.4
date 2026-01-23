@@ -14,6 +14,10 @@
 		reg = <0xaa00000 0x200000>;
 		interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
 
+		/* IOMMU Config */
+		#address-cells = <1>;
+		#size-cells = <1>;
+
 		/* LLCC Info */
 		cache-slice-names = "vidsc0", "vidsc1";
 
@@ -39,6 +43,9 @@
 		qcom,clock-configs = <0x1 0x0 0x0 0x1 0x0 0x1 0x0>;
 		qcom,allowed-clock-rates = <100000000 200000000 320000000
 			380000000 444000000 533000000>;
+
+		/* Video Firmware ELF image name */
+		vidc,firmware-name = "venus";
 
 		/* Buse Interconnects */
 		interconnect-names = "venus-cnoc", "venus-ddr", "venus-arm9-ddr", "venus-llcc";
