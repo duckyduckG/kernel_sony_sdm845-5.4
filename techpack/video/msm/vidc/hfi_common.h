@@ -315,6 +315,8 @@ void __noc_error_info_iris2(struct venus_hfi_device *device);
 void __core_clear_interrupt_iris2(struct venus_hfi_device *device);
 int __boot_firmware_iris2(struct venus_hfi_device *device, u32 sid);
 
+/* AR50 specific */
+void __interrupt_init_ar50(struct venus_hfi_device *device, u32 sid);
 /* AR50_LITE specific */
 void __interrupt_init_ar50_lt(struct venus_hfi_device *device, u32 sid);
 void __setup_ucregion_memory_map_ar50_lt(struct venus_hfi_device *device, u32 sid);
