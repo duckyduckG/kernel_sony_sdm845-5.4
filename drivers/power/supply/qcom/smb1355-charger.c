@@ -787,14 +787,6 @@ static int smb1355_get_prop_online(struct smb1355 *chip, int *val)
 		*val = chip->charging_enabled;
 		goto done;
 	}
-#if defined(CONFIG_MACH_XIAOMI_SDM845)
-	rc = smb1355_read(chip, POWER_PATH_STATUS_REG, &stat);
-	if (rc < 0) {
-		pr_err("failed to read POWER_PATH_STATUS_REG %d\n", rc);
-	} else
-		*val = (stat & USE_USBIN_BIT) &&
-                    (stat & VALID_INPUT_POWER_SOURCE_STS_BIT);
-#else
 	rc = smb1355_read(chip, BATTERY_STATUS_3_REG, &stat);
 	if (rc < 0) {
 		pr_err("failed to read BATTERY_STATUS_3_REG %d\n", rc);
@@ -802,11 +794,28 @@ static int smb1355_get_prop_online(struct smb1355 *chip, int *val)
 		*val = (bool)(stat & ENABLE_CHARGING_BIT);
 		chip->charging_enabled = *val;
 	}
-#endif
 done:
 	mutex_unlock(&chip->suspend_lock);
 	return rc;
 }
+
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
+static int smb1355_get_prop_online_xm(struct smb1355 *chip, int *val)
+{
+	int rc = 0;
+	u8 stat;
+
+	rc = smb1355_read(chip, POWER_PATH_STATUS_REG, &stat);
+	if (rc < 0) {
+		pr_err("failed to read POWER_PATH_STATUS_REG %d\n", rc);
+		goto err;
+	} else
+		*val = (stat & USE_USBIN_BIT) &&
+                    (stat & VALID_INPUT_POWER_SOURCE_STS_BIT);
+err:
+	return rc;
+}
+#endif
 
 static int smb1355_get_prop_pin_enabled(struct smb1355 *chip, int *val)
 {
@@ -1037,8 +1046,15 @@ static int smb1355_iio_read_raw(struct iio_dev *indio_dev,
 	case PSY_IIO_CHARGE_TYPE:
 		rc = smb1355_get_prop_charge_type(chip, val1);
 		break;
-	case PSY_IIO_CHARGING_ENABLED:
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
 	case PSY_IIO_ONLINE:
+		rc = smb1355_get_prop_online_xm(chip, val1);
+		break;
+#endif
+	case PSY_IIO_CHARGING_ENABLED:
+#if !defined(CONFIG_MACH_XIAOMI_SDM845)
+	case PSY_IIO_ONLINE:
+#endif
 		rc = smb1355_get_prop_online(chip, val1);
 		break;
 	case PSY_IIO_PIN_ENABLED:

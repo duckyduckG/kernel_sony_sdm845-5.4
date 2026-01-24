@@ -35,8 +35,8 @@
  
 #if defined(CONFIG_MACH_XIAOMI_SDM845)
 static bool off_charge_flag;
-/* TODO: Update for IIO idt */
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 static void smblib_wireless_set_enable(struct smb_charger *chg, int enable);
 #endif
 #endif
@@ -860,7 +860,11 @@ static const struct apsd_result *smblib_update_usb_type(struct smb_charger *chg)
 	/* if PD is active, APSD is disabled so won't have a valid result */
 	if (chg->pd_active) {
 		chg->real_charger_type = POWER_SUPPLY_TYPE_USB_PD;
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845) BROKEN
+	/* BUG: Charging loop with xiaomi change
+	 * charge -> discharge -> .............
+	 * disable following change to fix it
+	 */
+#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
 		chg->usb_psy_desc.type = POWER_SUPPLY_TYPE_USB_PD;
 #endif
 	} else {
@@ -870,11 +874,19 @@ static const struct apsd_result *smblib_update_usb_type(struct smb_charger *chg)
 		 */
 		if (!(apsd_result->val == QTI_POWER_SUPPLY_TYPE_USB_FLOAT &&
 			chg->real_charger_type == POWER_SUPPLY_TYPE_USB))
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845) BROKEN
+	/* BUG: Charging loop with xiaomi change
+	 * charge -> discharge -> .............
+	 * disable following change to fix it
+	 */
+#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
 			{
 #endif
 			chg->real_charger_type = apsd_result->val;
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845) BROKEN
+	/* BUG: Charging loop with xiaomi change
+	 * charge -> discharge -> .............
+	 * disable following change to fix it
+	 */
+#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
 			chg->usb_psy_desc.type = apsd_result->val;
 		}
 #endif
@@ -2526,8 +2538,8 @@ int smblib_set_prop_input_suspend(struct smb_charger *chg,
 	}
 #endif
 
-/* TODO: Update for IIO idt */
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 	smblib_wireless_set_enable(chg, !val->intval);
 #endif
 
@@ -2566,18 +2578,17 @@ int smblib_set_prop_dc_temp_level(struct smb_charger *chg,
 				int val)
 {
 	union power_supply_propval dc_present;
-	int rc, batt_temp = 0;
-	int dc_prsnt = 0;
+	union power_supply_propval batt_temp;
+	int rc;
 
 	rc = smblib_get_prop_dc_present(chg, &dc_present);
 	if (rc < 0) {
 		pr_err("Couldn't get dc present rc=%d\n", rc);
 		return -EINVAL;
 	}
-	dc_prsnt = dc_present.intval;
 
 	rc = smblib_get_prop_from_bms(chg,
-				SMB2_FG_GEN3_TEMP, &batt_temp);
+				SMB2_FG_GEN3_TEMP, &batt_temp.intval);
 	if (rc < 0) {
 		pr_err("Couldn't get batt temp rc=%d\n", rc);
 		return -EINVAL;
@@ -2591,7 +2602,7 @@ int smblib_set_prop_dc_temp_level(struct smb_charger *chg,
 		return -EINVAL;
 	chg->dc_temp_level = val;
 
-	if (!dc_prsnt)
+	if (!dc_present.intval)
 		return 0;
 	if (chg->dc_temp_level == chg->dc_thermal_levels)
 		return vote(chg->chg_disable_votable,
@@ -2602,7 +2613,7 @@ int smblib_set_prop_dc_temp_level(struct smb_charger *chg,
 		return vote(chg->dc_icl_votable, THERMAL_DAEMON_VOTER, false, 0);
 
 	smblib_dbg(chg, PR_OEM, "thermal level:%d, batt temp:%d, thermal_levels:%d dc_present=%d\n",
-			val, batt_temp, chg->dc_thermal_levels,dc_prsnt);
+			val, batt_temp.intval, chg->dc_thermal_levels,dc_present.intval);
 
 	vote(chg->dc_icl_votable, THERMAL_DAEMON_VOTER, true,
 		chg->thermal_mitigation_dc[chg->dc_temp_level]);
@@ -3111,8 +3122,9 @@ int smblib_get_prop_dc_current_max(struct smb_charger *chg,
 	val->intval = get_effective_result_locked(chg->dc_icl_votable);
 	return 0;
 }
-/* TODO: Update for IIO idt*/
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 int smblib_get_prop_wireless_version(struct smb_charger *chg,
 				     union power_supply_propval *val)
 {
@@ -3159,8 +3171,8 @@ int smblib_set_prop_dc_online(struct smb_charger *chg,
 	return 0;
 }
 
-/* TODO: Update for IIO idt*/
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 int smblib_set_prop_wireless_wakelock(struct smb_charger *chg,
 				const union power_supply_propval *val)
 {
@@ -4599,8 +4611,8 @@ void smblib_usb_plugin_hard_reset_locked(struct smb_charger *chg)
 					vbus_rising ? "attached" : "detached");
 }
 
-/* TODO: Update for IIO idt */
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 static void smblib_wireless_set_enable(struct smb_charger *chg, int enable)
 {
 	int rc = 0;
@@ -4650,8 +4662,8 @@ void smblib_usb_plugin_locked(struct smb_charger *chg)
 		}
 #if defined(CONFIG_MACH_XIAOMI_SDM845)
 		vote(chg->awake_votable, CHG_AWAKE_VOTER, true, 0);
-/* TODO: Update for IIO idt */
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 		smblib_wireless_set_enable(chg, false);
 #endif
 #endif
@@ -4706,8 +4718,8 @@ void smblib_usb_plugin_locked(struct smb_charger *chg)
 			return;
 		}
 
-/* TODO: Update for IIO idt */
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 		smblib_wireless_set_enable(chg, true);
 #endif
 
@@ -5845,8 +5857,8 @@ static void smblib_handle_typec_cc_state_change(struct smb_charger *chg)
 		chg->typec_present = true;
 		smblib_dbg(chg, PR_MISC, "TypeC %s insertion\n",
 			smblib_typec_mode_name[chg->typec_mode]);
-/* TODO: Update for IIO idt */
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 	/*D5X not support wireless charging when otg devices inserted,
 	  but E5 support caused byuse external boost circuit for otg*/
 	if (chg->wireless_charging_flag) {
@@ -5873,8 +5885,8 @@ static void smblib_handle_typec_cc_state_change(struct smb_charger *chg)
 		chg->typec_present = false;
 		smblib_dbg(chg, PR_MISC, "TypeC removal\n");
 		smblib_handle_typec_removal(chg);
-/* TODO: Update for IIO idt */
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 		smblib_wireless_set_enable(chg, true);
 #endif
 	}
@@ -5997,8 +6009,7 @@ irqreturn_t smblib_handle_dc_plugin(int irq, void *data)
 {
 	struct smb_irq_data *irq_data = data;
 	struct smb_charger *chg = irq_data->parent_data;
-/* TODO: Update for IIO idt */
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+#if defined(CONFIG_MACH_XIAOMI_SDM845)
 	int rc;
 	u8 stat;
 	union power_supply_propval val = {0, };
@@ -6011,23 +6022,31 @@ irqreturn_t smblib_handle_dc_plugin(int irq, void *data)
 		return IRQ_HANDLED;
 	}
 
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 	chg->idtp_psy = power_supply_get_by_name("idt");
+#endif
 	if (stat & USBIN_PLUGIN_RT_STS_BIT) {
 		smblib_dbg(chg, PR_OEM, "DC plugin: %d\n", stat);
 		vote(chg->awake_votable, DC_AWAKE_VOTER, true, 0);
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 		val.intval = true;
 		power_supply_set_property(chg->idtp_psy,
 				POWER_SUPPLY_PROP_PRESENT, &val);
+#endif
 		val.intval = 1;
 		power_supply_set_property(chg->dc_psy,
 				POWER_SUPPLY_PROP_ONLINE, &val);
 #if defined(CONFIG_THERMAL)
 		val.intval = chg->dc_temp_level;
-		power_supply_set_property(chg->batt_psy, POWER_SUPPLY_PROP_DC_THERMAL_LEVELS, &val);
+		iio_write_channel_raw(&chg->iio_chans[PSY_IIO_DC_THERMAL_LEVELS], val.intval);
 #endif
 	schedule_delayed_work(&chg->dc_input_current_work,
 			msecs_to_jiffies(2000));
 	}
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 	else if (chg->idtp_psy) {
 		cancel_delayed_work_sync(&chg->dc_input_current_work);
 		val.intval = false;
@@ -6042,6 +6061,7 @@ irqreturn_t smblib_handle_dc_plugin(int irq, void *data)
 		vote(chg->dc_icl_votable, DCIN_ADAPTER_VOTER, true, 300000);
 		smblib_dbg(chg, PR_OEM, "DC plugout: %d\n", stat);
 	}
+#endif
 #endif
 
 	power_supply_changed(chg->dc_psy);
