@@ -3216,7 +3216,7 @@
 			     <GIC_SPI 424 IRQ_TYPE_LEVEL_HIGH /* CE10 */ >,
 			     <GIC_SPI 425 IRQ_TYPE_LEVEL_HIGH /* CE11 */ >;
 		qcom,iommu-dma-addr-pool = <0xa0000000 0x10000000>;
-		qcom,iommu-dma = "fastmap";
+		qcom,iommu-dma = "bypass";
 		qcom,iommu-faults = "stall-disable", "non-fatal";
 		qcom,hyp_enabled;
 		qcom,wlan-msa-memory = <0x100000>;
@@ -3229,8 +3229,8 @@
 		qcom,vdd-3.3-ch0-config = <3104000 3312000>;
 
 		qcom,smp2p_map_wlan_1_in {
-			interrupts-extended = <&smp2p_wlan_1_in 0 IRQ_TYPE_LEVEL_HIGH>,
-					<&smp2p_wlan_1_in 1 IRQ_TYPE_LEVEL_HIGH>;
+			interrupts-extended = <&smp2p_wlan_1_in 0 0>,
+					<&smp2p_wlan_1_in 1 0>;
 			interrupt-names = "qcom,smp2p-force-fatal-error",
 					"qcom,smp2p-early-crash-ind";
 		};
