@@ -967,8 +967,8 @@ static int smb2_init_dc_psy(struct smb2 *chip)
 	return 0;
 }
 
-/* TODO: Update for IIO */
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 static int smb2_get_prop_wireless_signal(struct smb_charger *chg,
 				union power_supply_propval *val)
 {
@@ -2746,8 +2746,8 @@ static int smb2_probe(struct platform_device *pdev)
 		goto cleanup;
 	}
 
-/* TODO: Update for IIO */
-#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
+/* TODO: Update for IIO after updating idt driver */
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 	if (chg->wireless_support) {
 		rc = smb2_init_wireless_psy(chip);
 		if (rc < 0) {
