@@ -991,15 +991,23 @@ static int __unvote_buses(struct venus_hfi_device *device)
 {
 	int rc = 0;
 	struct bus_info *bus = NULL;
+	unsigned long bw_kbps = 0;
+	enum vidc_bus_type type;
 
 	kfree(device->bus_vote.data);
 	device->bus_vote.data = NULL;
 	device->bus_vote.data_count = 0;
 
 	venus_hfi_for_each_bus(device, bus) {
-		rc = __vote_bandwidth(bus, 0);
-		if (rc)
-			goto err_unknown_device;
+	type = get_type_frm_name(bus->name);
+		if (type != PERF) {
+			bw_kbps = __calc_bw(bus, &device->bus_vote);
+			rc = __vote_bandwidth(bus, bw_kbps);
+		} else {
+			rc = __vote_bandwidth(bus, 0);
+			if (rc)
+				goto err_unknown_device;
+		}
 	}
 
 err_unknown_device:
@@ -1013,6 +1021,7 @@ static int __vote_buses(struct venus_hfi_device *device,
 	struct bus_info *bus = NULL;
 	struct vidc_bus_vote_data *new_data = NULL;
 	unsigned long freq = 0;
+	enum vidc_bus_type type;
 
 	if (!num_data) {
 		dprintk(VIDC_DBG, "No vote data available\n");
@@ -1036,10 +1045,15 @@ no_data_count:
 
 	venus_hfi_for_each_bus(device, bus) {
 		if (bus && bus->path) {
-			freq = __calc_bw(bus, &device->bus_vote);
-			/* TODO: Update calc_bw logic to support separate perf mode*/
-			/* freq = bus->range[1]; */
-
+			type = get_type_frm_name(bus->name);
+			if (type != PERF) {
+				freq = __calc_bw(bus, &device->bus_vote);
+			} else {
+				freq = bus->range[1];
+				dprintk(VIDC_DBG, "%s %s perf Vote %u\n",
+							__func__, bus->name,
+							bus->range[1]);
+			}
 			/* ensure freq is within limits */
 			freq = clamp_t(typeof(freq), freq,
 				bus->range[0], bus->range[1]);
