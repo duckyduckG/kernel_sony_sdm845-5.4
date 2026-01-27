@@ -237,6 +237,7 @@
 				<&apps_smmu 0xc10 0x8>;
 			qcom,iommu-dma-addr-pool = <0x7400000 0xd8c00000>;
 			label = "ife";
+			dma-coherent-hint-cached;
 			ife_iova_mem_map: iova-mem-map {
 				/* IO region is approximately 3.4 GB */
 				iova-mem-region-io {
@@ -255,6 +256,7 @@
 				<&apps_smmu 0x1068 0x8>;
 			qcom,iommu-dma-addr-pool = <0x7400000 0xd8c00000>;
 			label = "jpeg";
+			dma-coherent-hint-cached;
 			jpeg_iova_mem_map: iova-mem-map {
 				/* IO region is approximately 3.4 GB */
 				iova-mem-region-io {
@@ -282,6 +284,7 @@
 				<&apps_smmu 0x1050 0x0>;
 			qcom,iommu-dma-addr-pool = <0x10c00000 0xcf300000>;
 			label = "icp";
+			dma-coherent-hint-cached;
 			icp_iova_mem_map: iova-mem-map {
 				iova-mem-region-firmware {
 					/* Firmware region is 5MB */
@@ -336,6 +339,7 @@
 			iommus = <&apps_smmu 0x1000 0x0>;
 			qcom,iommu-dma-addr-pool = <0x7400000 0xd8c00000>;
 			label = "cpas-cdm0";
+			dma-coherent-hint-cached;
 			cpas_cdm_iova_mem_map: iova-mem-map {
 				iova-mem-region-io {
 					/* IO region is approximately 3.4 GB */
@@ -359,6 +363,7 @@
 			iommus = <&apps_smmu 0x1070 0x0>;
 			qcom,iommu-dma-addr-pool = <0x7400000 0xd8c00000>;
 			label = "fd";
+			dma-coherent-hint-cached;
 			fd_iova_mem_map: iova-mem-map {
 				iova-mem-region-io {
 					/* IO region is approximately 3.4 GB */
