@@ -2666,10 +2666,10 @@ int msm_venc_enum_fmt(struct msm_vidc_inst *inst, struct v4l2_fmtdesc *f)
 	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
 		fmt = msm_comm_get_pixel_fmt_index(venc_formats,
 			ARRAY_SIZE(venc_formats), f->index, CAPTURE_PORT);
-		f->flags = V4L2_FMT_FLAG_COMPRESSED;
 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
 		fmt = msm_comm_get_pixel_fmt_index(venc_formats,
 			ARRAY_SIZE(venc_formats), f->index, OUTPUT_PORT);
+		f->flags = V4L2_FMT_FLAG_COMPRESSED;
 	}
 
 	memset(f->reserved, 0, sizeof(f->reserved));
