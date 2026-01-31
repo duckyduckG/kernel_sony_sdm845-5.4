@@ -375,7 +375,7 @@ static struct fg_alg_flag pmi8998_v2_alg_flags[] = {
 	},
 };
 
-#if defined(CONFIG_MACH_XIAOMI_SDM845)
+#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
 static int fg_gen3_debug_mask = FG_IRQ | FG_STATUS;
 #else
 static int fg_gen3_debug_mask;

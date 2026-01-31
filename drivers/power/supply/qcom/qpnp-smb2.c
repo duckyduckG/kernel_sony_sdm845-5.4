@@ -210,7 +210,7 @@ struct smb2 {
 	struct iio_chan_spec	*iio_chan_ids;
 };
 
-#if defined(CONFIG_MACH_XIAOMI_SDM845)
+#if 0 //defined(CONFIG_MACH_XIAOMI_SDM845)
 static int __debug_mask = PR_OEM | PR_MISC | PR_REGISTER;
 #else
 static int __debug_mask;
