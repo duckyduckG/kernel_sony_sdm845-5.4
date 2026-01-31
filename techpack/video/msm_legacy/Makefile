@@ -8,9 +8,4 @@ ifeq ($(CONFIG_ARCH_SDM845), y)
 LINUXINCLUDE    += -include $(srctree)/techpack/video/msm_legacy/config/sdm845.h
 endif
 
-LINUXINCLUDE    += -I$(srctree)/techpack/video/msm_legacy/include \
-                   -I$(srctree)/techpack/video/msm_legacy/include/uapi
-
-USERINCLUDE     += -I$(srctree)/techpack/video/msm_legacy/include/uapi
-
 obj-y +=msm/

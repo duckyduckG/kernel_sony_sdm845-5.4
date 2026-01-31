@@ -36,13 +36,13 @@ ifeq ($(CONFIG_ARCH_SCUBA), y)
 LINUXINCLUDE    += -include $(srctree)/techpack/video/config/scubavidconf.h
 endif
 
-LINUXINCLUDE    += -I$(srctree)/techpack/video/include \
-                   -I$(srctree)/techpack/video/include/uapi
-
-USERINCLUDE     += -I$(srctree)/techpack/video/include/uapi
-
 obj-y +=msm/
 
 else
 obj-y += msm_legacy/
 endif
+
+LINUXINCLUDE    += -I$(srctree)/techpack/video/include \
+                   -I$(srctree)/techpack/video/include/uapi
+
+USERINCLUDE     += -I$(srctree)/techpack/video/include/uapi
