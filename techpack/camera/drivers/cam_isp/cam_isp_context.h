@@ -15,7 +15,7 @@
 
 
 #include <linux/spinlock.h>
-#include <uapi/media/cam_isp.h>
+#include <media/cam_isp.h>
 
 #include "cam_context.h"
 #include "cam_isp_hw_mgr_intf.h"

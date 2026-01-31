@@ -22,7 +22,7 @@
 #include <linux/workqueue.h>
 #include <linux/genalloc.h>
 #include <soc/qcom/secure_buffer.h>
-#include <uapi/media/cam_req_mgr.h>
+#include <media/cam_req_mgr.h>
 #include "cam_compat.h"
 #include "cam_smmu_api.h"
 #include "cam_debug_util.h"

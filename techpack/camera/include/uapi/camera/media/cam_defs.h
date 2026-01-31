@@ -26,12 +26,12 @@
 #define CAM_EXT_OPCODE_BASE                     0x200
 #define CAM_CONFIG_DEV_EXTERNAL                 (CAM_EXT_OPCODE_BASE + 0x1)
 
-#if defined(CONFIG_MACH_XIAOMI_SDM845)
+/* Xiaomi-SDM845 Change start */
 /* camera ir op codes*/
 #define CAM_IR_UPDATE                           (CAM_EXT_OPCODE_BASE + 0x2)
 #define CAM_IR_GET_POWER_STATE                  (CAM_EXT_OPCODE_BASE + 0x3)
 #define CAM_IR_LUMA_READ                        (CAM_EXT_OPCODE_BASE + 0x4)
-#endif
+/* Xiaomi-SDM845 Change end */
 
 /* camera handle type */
 #define CAM_HANDLE_USER_POINTER                 1
@@ -82,11 +82,11 @@ enum flush_type_t {
  * @handle:             Control command payload
  */
 struct cam_control {
-	uint32_t        op_code;
-	uint32_t        size;
-	uint32_t        handle_type;
-	uint32_t        reserved;
-	uint64_t        handle;
+	__u32           op_code;
+	__u32           size;
+	__u32           handle_type;
+	__u32           reserved;
+	__u64           handle;
 };
 
 /* camera IOCTL */
@@ -102,10 +102,10 @@ struct cam_control {
  * @reserved : Reserved for 64 bit aligngment
  */
 struct cam_hw_version {
-	uint32_t major;
-	uint32_t minor;
-	uint32_t incr;
-	uint32_t reserved;
+	__u32 major;
+	__u32 minor;
+	__u32 incr;
+	__u32 reserved;
 };
 
 /**
@@ -116,8 +116,8 @@ struct cam_hw_version {
  *
  */
 struct cam_iommu_handle {
-	int32_t non_secure;
-	int32_t secure;
+	__s32 non_secure;
+	__s32 secure;
 };
 
 /* camera secure mode */
@@ -261,18 +261,18 @@ struct cam_dump_req_cmd {
  *
  */
 struct cam_plane_cfg {
-	uint32_t                width;
-	uint32_t                height;
-	uint32_t                plane_stride;
-	uint32_t                slice_height;
-	uint32_t                meta_stride;
-	uint32_t                meta_size;
-	uint32_t                meta_offset;
-	uint32_t                packer_config;
-	uint32_t                mode_config;
-	uint32_t                tile_config;
-	uint32_t                h_init;
-	uint32_t                v_init;
+	__u32                   width;
+	__u32                   height;
+	__u32                   plane_stride;
+	__u32                   slice_height;
+	__u32                   meta_stride;
+	__u32                   meta_size;
+	__u32                   meta_offset;
+	__u32                   packer_config;
+	__u32                   mode_config;
+	__u32                   tile_config;
+	__u32                   h_init;
+	__u32                   v_init;
 };
 
 /**
@@ -291,16 +291,16 @@ struct cam_plane_cfg {
  *
  */
 struct cam_ubwc_plane_cfg_v1 {
-	uint32_t                port_type;
-	uint32_t                meta_stride;
-	uint32_t                meta_size;
-	uint32_t                meta_offset;
-	uint32_t                packer_config;
-	uint32_t                mode_config_0;
-	uint32_t                mode_config_1;
-	uint32_t                tile_config;
-	uint32_t                h_init;
-	uint32_t                v_init;
+	__u32                   port_type;
+	__u32                   meta_stride;
+	__u32                   meta_size;
+	__u32                   meta_offset;
+	__u32                   packer_config;
+	__u32                   mode_config_0;
+	__u32                   mode_config_1;
+	__u32                   tile_config;
+	__u32                   h_init;
+	__u32                   v_init;
 };
 
 /**
@@ -316,12 +316,12 @@ struct cam_ubwc_plane_cfg_v1 {
  *
  */
 struct cam_cmd_buf_desc {
-	int32_t                 mem_handle;
-	uint32_t                offset;
-	uint32_t                size;
-	uint32_t                length;
-	uint32_t                type;
-	uint32_t                meta_data;
+	__s32                   mem_handle;
+	__u32                   offset;
+	__u32                   size;
+	__u32                   length;
+	__u32                   type;
+	__u32                   meta_data;
 };
 
 /**
@@ -358,26 +358,26 @@ struct cam_cmd_buf_desc {
  *
  */
 struct cam_buf_io_cfg {
-	int32_t                         mem_handle[CAM_PACKET_MAX_PLANES];
-	uint32_t                        offsets[CAM_PACKET_MAX_PLANES];
+	__s32                           mem_handle[CAM_PACKET_MAX_PLANES];
+	__u32                           offsets[CAM_PACKET_MAX_PLANES];
 	struct cam_plane_cfg            planes[CAM_PACKET_MAX_PLANES];
-	uint32_t                        format;
-	uint32_t                        color_space;
-	uint32_t                        color_pattern;
-	uint32_t                        bpp;
-	uint32_t                        rotation;
-	uint32_t                        resource_type;
-	int32_t                         fence;
-	int32_t                         early_fence;
+	__u32                           format;
+	__u32                           color_space;
+	__u32                           color_pattern;
+	__u32                           bpp;
+	__u32                           rotation;
+	__u32                           resource_type;
+	__s32                           fence;
+	__s32                           early_fence;
 	struct cam_cmd_buf_desc         aux_cmd_buf;
-	uint32_t                        direction;
-	uint32_t                        batch_size;
-	uint32_t                        subsample_pattern;
-	uint32_t                        subsample_period;
-	uint32_t                        framedrop_pattern;
-	uint32_t                        framedrop_period;
-	uint32_t                        flag;
-	uint32_t                        padding;
+	__u32                           direction;
+	__u32                           batch_size;
+	__u32                           subsample_pattern;
+	__u32                           subsample_period;
+	__u32                           framedrop_pattern;
+	__u32                           framedrop_period;
+	__u32                           flag;
+	__u32                           padding;
 };
 
 /**
@@ -391,11 +391,11 @@ struct cam_buf_io_cfg {
  *
  */
 struct cam_packet_header {
-	uint32_t                op_code;
-	uint32_t                size;
-	uint64_t                request_id;
-	uint32_t                flags;
-	uint32_t                padding;
+	__u32                   op_code;
+	__u32                   size;
+	__u64                   request_id;
+	__u32                   flags;
+	__u32                   padding;
 };
 
 /**
@@ -408,10 +408,10 @@ struct cam_packet_header {
  *
  */
 struct cam_patch_desc {
-	int32_t                 dst_buf_hdl;
-	uint32_t                dst_offset;
-	int32_t                 src_buf_hdl;
-	uint32_t                src_offset;
+	__s32                   dst_buf_hdl;
+	__u32                   dst_offset;
+	__s32                   src_buf_hdl;
+	__u32                   src_offset;
 };
 
 /**
@@ -433,15 +433,15 @@ struct cam_patch_desc {
  */
 struct cam_packet {
 	struct cam_packet_header        header;
-	uint32_t                        cmd_buf_offset;
-	uint32_t                        num_cmd_buf;
-	uint32_t                        io_configs_offset;
-	uint32_t                        num_io_configs;
-	uint32_t                        patch_offset;
-	uint32_t                        num_patches;
-	uint32_t                        kmd_cmd_buf_index;
-	uint32_t                        kmd_cmd_buf_offset;
-	uint64_t                        payload[1];
+	__u32                           cmd_buf_offset;
+	__u32                           num_cmd_buf;
+	__u32                           io_configs_offset;
+	__u32                           num_io_configs;
+	__u32                           patch_offset;
+	__u32                           num_patches;
+	__u32                           kmd_cmd_buf_index;
+	__u32                           kmd_cmd_buf_offset;
+	__u64                           payload[1];
 
 };
 
@@ -452,8 +452,8 @@ struct cam_packet {
  * @dev_handle:                 Device handle for the release
  */
 struct cam_release_dev_cmd {
-	int32_t                 session_handle;
-	int32_t                 dev_handle;
+	__s32                   session_handle;
+	__s32                   dev_handle;
 };
 
 /**
@@ -464,8 +464,8 @@ struct cam_release_dev_cmd {
  *
  */
 struct cam_start_stop_dev_cmd {
-	int32_t                 session_handle;
-	int32_t                 dev_handle;
+	__s32                   session_handle;
+	__s32                   dev_handle;
 };
 
 /**
@@ -479,10 +479,10 @@ struct cam_start_stop_dev_cmd {
  *
  */
 struct cam_config_dev_cmd {
-	int32_t                 session_handle;
-	int32_t                 dev_handle;
-	uint64_t                offset;
-	uint64_t                packet_handle;
+	__s32                   session_handle;
+	__s32                   dev_handle;
+	__u64                   offset;
+	__u64                   packet_handle;
 };
 
 /**
@@ -494,9 +494,9 @@ struct cam_config_dev_cmd {
  *
  */
 struct cam_query_cap_cmd {
-	uint32_t        size;
-	uint32_t        handle_type;
-	uint64_t        caps_handle;
+	__u32           size;
+	__u32           handle_type;
+	__u64           caps_handle;
 };
 
 /**
@@ -513,11 +513,11 @@ struct cam_query_cap_cmd {
  *
  */
 struct cam_acquire_dev_cmd {
-	int32_t         session_handle;
-	int32_t         dev_handle;
-	uint32_t        handle_type;
-	uint32_t        num_resources;
-	uint64_t        resource_hdl;
+	__s32           session_handle;
+	__s32           dev_handle;
+	__u32           handle_type;
+	__u32           num_resources;
+	__u64           resource_hdl;
 };
 
 /*
@@ -530,7 +530,7 @@ struct cam_acquire_dev_cmd {
  * ACQUIRE_HW IOCTL after ACQUIRE_DEV and that is when the HW
  * is associated with the dev_handle.
  *
- * (Data type): uint32_t
+ * (Data type): __u32
  */
 #define CAM_API_COMPAT_CONSTANT                   0xFEFEFEFE
 
@@ -556,13 +556,13 @@ struct cam_acquire_dev_cmd {
  *                      resource data.
  */
 struct cam_acquire_hw_cmd_v1 {
-	uint32_t        struct_version;
-	uint32_t        reserved;
-	int32_t         session_handle;
-	int32_t         dev_handle;
-	uint32_t        handle_type;
-	uint32_t        data_size;
-	uint64_t        resource_hdl;
+	__u32           struct_version;
+	__u32           reserved;
+	__s32           session_handle;
+	__s32           dev_handle;
+	__u32           handle_type;
+	__u32           data_size;
+	__u64           resource_hdl;
 };
 
 #define CAM_RELEASE_HW_STRUCT_VERSION_1           1
@@ -581,10 +581,10 @@ struct cam_acquire_hw_cmd_v1 {
  * @dev_handle:         Device handle for the release
  */
 struct cam_release_hw_cmd_v1 {
-	uint32_t                struct_version;
-	uint32_t                reserved;
-	int32_t                 session_handle;
-	int32_t                 dev_handle;
+	__u32                   struct_version;
+	__u32                   reserved;
+	__s32                   session_handle;
+	__s32                   dev_handle;
 };
 
 /**
@@ -601,12 +601,12 @@ struct cam_release_hw_cmd_v1 {
  *
  */
 struct cam_flush_dev_cmd {
-	uint64_t       version;
-	int32_t        session_handle;
-	int32_t        dev_handle;
-	uint32_t       flush_type;
-	uint32_t       reserved;
-	int64_t        req_id;
+	__u64          version;
+	__s32          session_handle;
+	__s32          dev_handle;
+	__u32          flush_type;
+	__u32          reserved;
+	__s64          req_id;
 };
 
 /**
@@ -621,8 +621,8 @@ struct cam_flush_dev_cmd {
  *
  */
 struct cam_ubwc_config {
-	uint32_t   api_version;
-	uint32_t   num_ports;
+	__u32      api_version;
+	__u32      num_ports;
 	struct cam_ubwc_plane_cfg_v1
 		   ubwc_plane_cfg[1][CAM_PACKET_MAX_PLANES - 1];
 };
@@ -637,10 +637,10 @@ struct cam_ubwc_config {
  * @flags      : Flags if any
  */
 struct cam_cmd_mem_region_info {
-	int32_t   mem_handle;
-	uint32_t  offset;
-	uint32_t  size;
-	uint32_t  flags;
+	__s32     mem_handle;
+	__u32     offset;
+	__u32     size;
+	__u32     flags;
 };
 
 /**
@@ -653,16 +653,16 @@ struct cam_cmd_mem_region_info {
  * @map_info_array : Array of all the regions
  */
 struct cam_cmd_mem_regions {
-	uint32_t version;
-	uint32_t num_regions;
+	__u32 version;
+	__u32 num_regions;
 	struct cam_cmd_mem_region_info map_info_array[1];
 };
 
-#if defined(CONFIG_MACH_XIAOMI_SDM845)
+/* Xiaomi-SDM845 Change start */
 struct cam_luma_data {
-	uint32_t        expo;
-	uint32_t        gain;
+	__u32	        expo;
+	__u32	        gain;
 };
-#endif
+/* Xiaomi-SDM845 Change end */
 
 #endif /* __UAPI_CAM_DEFS_H__ */
