@@ -184,6 +184,16 @@ enum v4l2_mpeg_vidc_video_bitrate_mode {
 	V4L2_MPEG_VIDEO_BITRATE_MODE_MBR_VFR,
 	V4L2_MPEG_VIDEO_BITRATE_MODE_CQ,
 };
+
+enum v4l2_mpeg_video_header_mode_legacy {
+	V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_I_FRAME =
+		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME + 1,
+};
+
+enum v4l2_mpeg_video_h264_level_legacy {
+	V4L2_MPEG_VIDEO_H264_LEVEL_UNKNOWN =
+		V4L2_MPEG_VIDEO_H264_LEVEL_6_2	+ 1,
+};
 /* missing v4l2 entries end */
 
 /* vendor controls start */
