@@ -979,7 +979,7 @@ static int __vote_bandwidth(struct bus_info *bus,
 	int rc = 0;
 
 	dprintk(VIDC_PROF, "Voting bus %s to ab %llu kbps\n", bus->name, bw_kbps);
-	rc = icc_set_bw(bus->path, kbps_to_icc(bw_kbps), 0);
+	rc = icc_set_bw(bus->path, bw_kbps, 0);
 	if (rc)
 		dprintk(VIDC_ERR, "Failed voting bus %s to ab %llu, rc=%d\n",
 				bus->name, bw_kbps, rc);
