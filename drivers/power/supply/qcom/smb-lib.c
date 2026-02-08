@@ -2581,6 +2581,8 @@ int smblib_set_prop_dc_temp_level(struct smb_charger *chg,
 	union power_supply_propval batt_temp;
 	int rc;
 
+	return 0;
+
 	rc = smblib_get_prop_dc_present(chg, &dc_present);
 	if (rc < 0) {
 		pr_err("Couldn't get dc present rc=%d\n", rc);
@@ -2734,6 +2736,8 @@ static int smblib_therm_charging(struct smb_charger *chg)
 {
 	int thermal_icl_ua = 0;
 	int rc;
+
+	return 0;
 
 	if (chg->system_temp_level >= MAX_TEMP_LEVEL)
 		return 0;
@@ -5254,7 +5258,7 @@ static void smblib_handle_apsd_done(struct smb_charger *chg, bool rising)
 
 #if defined(CONFIG_MACH_XIAOMI_SDM845)
 #if defined(CONFIG_THERMAL)
-	val.intval = chg->system_temp_level;
+	val.intval = 0; // chg->system_temp_level;
 	rc = power_supply_set_property(chg->batt_psy, POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT, &val);
 	if (rc < 0) {
 		smblib_err(chg, "Could not set charger control limit =%d\n", rc);
@@ -6030,12 +6034,12 @@ irqreturn_t smblib_handle_dc_plugin(int irq, void *data)
 		smblib_dbg(chg, PR_OEM, "DC plugin: %d\n", stat);
 		vote(chg->awake_votable, DC_AWAKE_VOTER, true, 0);
 /* TODO: Update for IIO after updating idt driver */
-#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 		val.intval = true;
+#if defined(CONFIG_MACH_XIAOMI_SDM845) && defined(CONFIG_IDT_P9220)
 		power_supply_set_property(chg->idtp_psy,
 				POWER_SUPPLY_PROP_PRESENT, &val);
-#endif
 		val.intval = 1;
+#endif
 		power_supply_set_property(chg->dc_psy,
 				POWER_SUPPLY_PROP_ONLINE, &val);
 #if defined(CONFIG_THERMAL)
