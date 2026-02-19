@@ -1957,7 +1957,11 @@ int __qcom_scm_clear_ice_key(struct device *dev, uint32_t index,
 
 	desc.args[0] = index;
 	desc.args[1] = food;
+#ifdef CONFIG_ARCH_SM8150
+	desc.arginfo = QCOM_SCM_ARGS(1);
+#else
 	desc.arginfo = QCOM_SCM_ARGS(2);
+#endif
 
 	ret = qcom_scm_call_noretry(dev, &desc);
 	if (ret)
