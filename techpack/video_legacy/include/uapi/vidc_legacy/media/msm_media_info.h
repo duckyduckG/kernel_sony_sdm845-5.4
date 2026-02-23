@@ -1233,7 +1233,7 @@ invalid_input:
 static inline unsigned int VENUS_BUFFER_SIZE(unsigned int color_fmt,
 	unsigned int width, unsigned int height)
 {
-	unsigned int size = 0;
+	unsigned int uv_alignment = 0, size = 0;
 	unsigned int y_plane, uv_plane, y_stride,
 		uv_stride, y_sclines, uv_sclines;
 	unsigned int y_ubwc_plane = 0, uv_ubwc_plane = 0;
@@ -1260,9 +1260,11 @@ static inline unsigned int VENUS_BUFFER_SIZE(unsigned int color_fmt,
 	case COLOR_FMT_P010:
 	case COLOR_FMT_NV12_512:
 	case COLOR_FMT_NV12_128:
+		uv_alignment = 4096;
 		y_plane = y_stride * y_sclines;
-		uv_plane = uv_stride * uv_sclines;
+		uv_plane = uv_stride * uv_sclines + uv_alignment;
 		size = y_plane + uv_plane;
+		size = MSM_MEDIA_ALIGN(size, 4096);
 		break;
 	case COLOR_FMT_NV12_UBWC:
 		y_meta_stride = VENUS_Y_META_STRIDE(color_fmt, width);
@@ -1306,6 +1308,7 @@ static inline unsigned int VENUS_BUFFER_SIZE(unsigned int color_fmt,
 			size = (y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
 				uv_meta_plane);
 		}
+		size = MSM_MEDIA_ALIGN(size, 4096);
 		break;
 	case COLOR_FMT_NV12_BPP10_UBWC:
 		y_ubwc_plane = MSM_MEDIA_ALIGN(y_stride * y_sclines, 4096);
@@ -1321,6 +1324,7 @@ static inline unsigned int VENUS_BUFFER_SIZE(unsigned int color_fmt,
 
 		size = y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
 			uv_meta_plane;
+		size = MSM_MEDIA_ALIGN(size, 4096);
 		break;
 	case COLOR_FMT_P010_UBWC:
 		y_ubwc_plane = MSM_MEDIA_ALIGN(y_stride * y_sclines, 4096);
@@ -1336,10 +1340,12 @@ static inline unsigned int VENUS_BUFFER_SIZE(unsigned int color_fmt,
 
 		size = y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
 			uv_meta_plane;
+		size = MSM_MEDIA_ALIGN(size, 4096);
 		break;
 	case COLOR_FMT_RGBA8888:
 		rgb_plane = MSM_MEDIA_ALIGN(rgb_stride  * rgb_scanlines, 4096);
 		size = rgb_plane;
+		size = MSM_MEDIA_ALIGN(size, 4096);
 		break;
 	case COLOR_FMT_RGBA8888_UBWC:
 	case COLOR_FMT_RGBA1010102_UBWC:
@@ -1352,12 +1358,13 @@ static inline unsigned int VENUS_BUFFER_SIZE(unsigned int color_fmt,
 		rgb_meta_plane = MSM_MEDIA_ALIGN(rgb_meta_stride *
 					rgb_meta_scanlines, 4096);
 		size = rgb_ubwc_plane + rgb_meta_plane;
+		size = MSM_MEDIA_ALIGN(size, 4096);
 		break;
 	default:
 		break;
 	}
 invalid_input:
-	return MSM_MEDIA_ALIGN(size, 4096);
+	return size;
 }
 
 static inline unsigned int VENUS_BUFFER_SIZE_USED(unsigned int color_fmt,
