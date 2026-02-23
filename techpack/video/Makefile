@@ -9,11 +9,11 @@ LINUXINCLUDE    += -include $(srctree)/techpack/video/config/konavidconf.h
 endif
 
 # auto-detect subdirs
-ifeq ($(CONFIG_ARCH_SM8150), y)
+ifeq ($(CONFIG_ARCH_LITO), y)
 include $(srctree)/techpack/video/config/holivid.conf
 endif
 
-ifeq ($(CONFIG_ARCH_SM8150), y)
+ifeq ($(CONFIG_ARCH_LITO), y)
 LINUXINCLUDE    += -include $(srctree)/techpack/video/config/holividconf.h
 endif
 
