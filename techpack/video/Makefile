@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 
-ifneq ($(CONFIG_ARCH_SDM845), y)
+ifneq ($(CONFIG_ARCH_SM8150), y)
 # auto-detect subdirs
 ifneq ($(CONFIG_ARCH_QTI_VM), y)
 ifeq ($(CONFIG_ARCH_LAHAINA), y)
