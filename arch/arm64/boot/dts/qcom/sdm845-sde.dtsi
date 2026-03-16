@@ -36,7 +36,6 @@
 		#interrupt-cells = <1>;
 
 		#power-domain-cells = <0>;
-		#list-cells = <1>;
 
 		/* hw blocks */
 		qcom,sde-off = <0x1000>;
@@ -116,7 +115,8 @@
 				 <0x2ac 8>, <0x2b4 8>, <0x2bc 8>, <0x2c4 8>;
 		qcom,sde-sspp-csc-off = <0x1a00>;
 		qcom,sde-csc-type = "csc-10bit";
-		qcom,sde-qseed-type = "qseedv3";
+		qcom,sde-qseed-sw-lib-rev = "qseedv3";
+		qcom,sde-qseed-scalar-version = <0x3000>;
 		qcom,sde-sspp-qseed-off = <0xa00>;
 		qcom,sde-mixer-linewidth = <2560>;
 		qcom,sde-sspp-linewidth = <2560>;
@@ -154,18 +154,8 @@
 
 		qcom,sde-danger-lut = <0x0000000f 0x0000ffff 0x00000000
 			0x00000000>;
-		qcom,sde-safe-lut-linear =
-			<4 0xfff8>,
-			<0 0xfff0>;
-		qcom,sde-safe-lut-macrotile =
-			<10 0xfe00>,
-			<11 0xfc00>,
-			<12 0xf800>,
-			<0 0xf000>;
-		qcom,sde-safe-lut-nrt =
-			<0 0xffff>;
-		qcom,sde-safe-lut-cwb =
-			<0 0xffff>;
+		qcom,sde-safe-lut = <0xff00 0xff00 0xffff 0x00 0xff00
+			0xff00 0xfe00 0xfe00 0xffff 0x00 0xfe00 0xfe00>;
 		qcom,sde-qos-lut-linear =
 			<4 0x00000000 0x00000357>,
 			<5 0x00000000 0x00003357>,
@@ -198,9 +188,6 @@
 		qcom,sde-qos-cpu-irq-latency = <300>;
 
 		qcom,sde-inline-rotator = <&mdss_rotator 0>;
-
-		/* offsets are relative to "mdp_phys + qcom,sde-off */
-		qcom,sde-inline-rot-clk-ctrl = <0x2bc 0x8>, <0x2bc 0xc>;
 
 		qcom,sde-reg-dma-off = <0>;
 		qcom,sde-reg-dma-version = <0x1>;
@@ -246,6 +233,7 @@
 		qcom,iommu-dma-addr-pool = <0x00020000 0xfffe0000>;
 		qcom,iommu-faults = "non-fatal";
 		qcom,iommu-earlymap; /* for cont-splash */
+		dma-coherent-hint-cached;
 	};
 
 	smmu_sde_sec: qcom,smmu_sde_sec_cb {
@@ -303,6 +291,8 @@
 			<&gladiator_noc MASTER_AMPSS_M0 &config_noc SLAVE_DISPLAY_CFG>;
 		interconnect-names = "qcom,rot-data-bus0",
 			"qcom,sde-reg-bus";
+		qcom,sde-reg-bus,vectors-KBps = <0 0>,
+				<0 76800>;
 
 		rot-vdd-supply = <&mdss_core_gdsc>;
 		qcom,supply-names = "rot-vdd";
@@ -320,10 +310,6 @@
 		interrupts = <2 IRQ_TYPE_LEVEL_HIGH>;
 
 		power-domains = <&mdss_mdp>;
-
-		/* Offline rotator RT setting */
-		qcom,mdss-rot-parent = <&mdss_mdp 0>;
-		qcom,mdss-rot-xin-id = <10 11>;
 
 		/* Offline rotator QoS setting */
 		qcom,mdss-rot-vbif-qos-setting = <3 3 3 3 3 3 3 3>;
