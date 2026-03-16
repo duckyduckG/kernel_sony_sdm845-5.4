@@ -783,12 +783,12 @@ static inline unsigned int MMM_COLOR_FMT_Y_STRIDE(unsigned int color_fmt,
 		goto invalid_input;
 
 	switch (color_fmt) {
-	case MMM_COLOR_FMT_NV12:
-	case MMM_COLOR_FMT_NV21:
 	case MMM_COLOR_FMT_NV12_512:
 		alignment = 512;
 		stride = MMM_COLOR_FMT_ALIGN(width, alignment);
 		break;
+	case MMM_COLOR_FMT_NV12:
+	case MMM_COLOR_FMT_NV21:
 	case MMM_COLOR_FMT_NV12_UBWC:
 		alignment = 128;
 		stride = MMM_COLOR_FMT_ALIGN(width, alignment);
@@ -826,12 +826,12 @@ static inline unsigned int MMM_COLOR_FMT_UV_STRIDE(unsigned int color_fmt,
 		goto invalid_input;
 
 	switch (color_fmt) {
-	case MMM_COLOR_FMT_NV21:
-	case MMM_COLOR_FMT_NV12:
 	case MMM_COLOR_FMT_NV12_512:
 		alignment = 512;
 		stride = MMM_COLOR_FMT_ALIGN(width, alignment);
 		break;
+	case MMM_COLOR_FMT_NV21:
+	case MMM_COLOR_FMT_NV12:
 	case MMM_COLOR_FMT_NV12_UBWC:
 		alignment = 128;
 		stride = MMM_COLOR_FMT_ALIGN(width, alignment);
@@ -869,11 +869,11 @@ static inline unsigned int MMM_COLOR_FMT_Y_SCANLINES(unsigned int color_fmt,
 		goto invalid_input;
 
 	switch (color_fmt) {
-	case MMM_COLOR_FMT_NV12:
-	case MMM_COLOR_FMT_NV21:
 	case MMM_COLOR_FMT_NV12_512:
 		alignment = 512;
 		break;
+	case MMM_COLOR_FMT_NV12:
+	case MMM_COLOR_FMT_NV21:
 	case MMM_COLOR_FMT_NV12_UBWC:
 	case MMM_COLOR_FMT_P010:
 		alignment = 32;
@@ -906,11 +906,11 @@ static inline unsigned int MMM_COLOR_FMT_UV_SCANLINES(unsigned int color_fmt,
 		goto invalid_input;
 
 	switch (color_fmt) {
-	case MMM_COLOR_FMT_NV21:
-	case MMM_COLOR_FMT_NV12:
 	case MMM_COLOR_FMT_NV12_512:
 		alignment = 256;
 		break;
+	case MMM_COLOR_FMT_NV21:
+	case MMM_COLOR_FMT_NV12:
 	case MMM_COLOR_FMT_NV12_BPP10_UBWC:
 	case MMM_COLOR_FMT_P010_UBWC:
 	case MMM_COLOR_FMT_P010:
@@ -1186,7 +1186,7 @@ invalid_input:
 static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE(unsigned int color_fmt,
 	unsigned int width, unsigned int height)
 {
-	unsigned int size = 0;
+	unsigned int uv_alignment = 0, size = 0;
 	unsigned int y_plane, uv_plane, y_stride,
 		uv_stride, y_sclines, uv_sclines;
 	unsigned int y_ubwc_plane = 0, uv_ubwc_plane = 0;
@@ -1212,9 +1212,11 @@ static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE(unsigned int color_fmt,
 	case MMM_COLOR_FMT_NV12:
 	case MMM_COLOR_FMT_P010:
 	case MMM_COLOR_FMT_NV12_512:
+		uv_alignment = 4096;
 		y_plane = y_stride * y_sclines;
-		uv_plane = uv_stride * uv_sclines;
+		uv_plane = uv_stride * uv_sclines + uv_alignment;
 		size = y_plane + uv_plane;
+		size = MMM_COLOR_FMT_ALIGN(size, 4096);
 		break;
 	case MMM_COLOR_FMT_NV12_UBWC:
 		y_meta_stride = MMM_COLOR_FMT_Y_META_STRIDE(color_fmt, width);
@@ -1261,6 +1263,7 @@ static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE(unsigned int color_fmt,
 			size = (y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
 				uv_meta_plane);
 		}
+		size = MMM_COLOR_FMT_ALIGN(size, 4096);
 		break;
 	case MMM_COLOR_FMT_NV12_BPP10_UBWC:
 		y_ubwc_plane = MMM_COLOR_FMT_ALIGN(y_stride * y_sclines, 4096);
@@ -1279,6 +1282,7 @@ static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE(unsigned int color_fmt,
 
 		size = y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
 			uv_meta_plane;
+		size = MMM_COLOR_FMT_ALIGN(size, 4096);
 		break;
 	case MMM_COLOR_FMT_P010_UBWC:
 		y_ubwc_plane = MMM_COLOR_FMT_ALIGN(y_stride * y_sclines, 4096);
@@ -1297,11 +1301,13 @@ static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE(unsigned int color_fmt,
 
 		size = y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
 			uv_meta_plane;
+		size = MMM_COLOR_FMT_ALIGN(size, 4096);
 		break;
 	case MMM_COLOR_FMT_RGBA8888:
 		rgb_plane = MMM_COLOR_FMT_ALIGN(rgb_stride  * rgb_scanlines,
 									4096);
 		size = rgb_plane;
+		size = MMM_COLOR_FMT_ALIGN(size, 4096);
 		break;
 	case MMM_COLOR_FMT_RGBA8888_UBWC:
 	case MMM_COLOR_FMT_RGBA1010102_UBWC:
@@ -1315,12 +1321,13 @@ static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE(unsigned int color_fmt,
 		rgb_meta_plane = MMM_COLOR_FMT_ALIGN(rgb_meta_stride *
 					rgb_meta_scanlines, 4096);
 		size = rgb_ubwc_plane + rgb_meta_plane;
+		size = MMM_COLOR_FMT_ALIGN(size, 4096);
 		break;
 	default:
 		break;
 	}
 invalid_input:
-	return MMM_COLOR_FMT_ALIGN(size, 4096);
+	return size;
 }
 
 static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE_USED(
