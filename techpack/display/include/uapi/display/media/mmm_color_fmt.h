@@ -20,6 +20,10 @@
 #define MMM_COLOR_FMT_ROUNDUP(__sz, __r) (((__sz) + ((__r) - 1)) / (__r))
 #endif
 
+#ifndef MMM_MEDIA_MAX
+#define MMM_MEDIA_MAX(__a, __b) ((__a) > (__b)?(__a):(__b))
+#endif
+
 enum mmm_color_fmts {
 	/* Venus NV12:
 	 * YUV 4:2:0 image with a plane of 8 bit Y samples followed
@@ -767,6 +771,18 @@ enum mmm_color_fmts {
 	MMM_COLOR_FMT_NV12_512,
 };
 
+static inline unsigned int MMM_EXTRADATA_SIZE(int width, int height)
+{
+	(void)height;
+	(void)width;
+
+	/*
+	 * In the future, calculate the size based on the w/h but just
+	 * hardcode it for now since 16K satisfies all current usecases.
+	 */
+	return 16 * 1024;
+}
+
 /*
  * Function arguments:
  * @color_fmt
@@ -799,9 +815,12 @@ static inline unsigned int MMM_COLOR_FMT_Y_STRIDE(unsigned int color_fmt,
 		stride = MMM_COLOR_FMT_ALIGN(stride * 4/3, alignment);
 		break;
 	case MMM_COLOR_FMT_P010_UBWC:
-	case MMM_COLOR_FMT_P010:
 		alignment = 256;
 		stride = MMM_COLOR_FMT_ALIGN(width * 2, alignment);
+		break;
+	case MMM_COLOR_FMT_P010:
+		alignment = 128;
+		stride = MMM_COLOR_FMT_ALIGN(width*2, alignment);
 		break;
 	default:
 		break;
@@ -842,9 +861,12 @@ static inline unsigned int MMM_COLOR_FMT_UV_STRIDE(unsigned int color_fmt,
 		stride = MMM_COLOR_FMT_ALIGN(stride * 4/3, alignment);
 		break;
 	case MMM_COLOR_FMT_P010_UBWC:
-	case MMM_COLOR_FMT_P010:
 		alignment = 256;
 		stride = MMM_COLOR_FMT_ALIGN(width * 2, alignment);
+		break;
+	case MMM_COLOR_FMT_P010:
+		alignment = 128;
+		stride = MMM_COLOR_FMT_ALIGN(width*2, alignment);
 		break;
 	default:
 		break;
@@ -1186,7 +1208,9 @@ invalid_input:
 static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE(unsigned int color_fmt,
 	unsigned int width, unsigned int height)
 {
+	const unsigned int extra_size = MMM_EXTRADATA_SIZE(width, height);
 	unsigned int uv_alignment = 0, size = 0;
+	unsigned int w_alignment = 512;
 	unsigned int y_plane, uv_plane, y_stride,
 		uv_stride, y_sclines, uv_sclines;
 	unsigned int y_ubwc_plane = 0, uv_ubwc_plane = 0;
@@ -1210,60 +1234,56 @@ static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE(unsigned int color_fmt,
 	switch (color_fmt) {
 	case MMM_COLOR_FMT_NV21:
 	case MMM_COLOR_FMT_NV12:
+		uv_alignment = 4096;
+		y_plane = y_stride * y_sclines;
+		uv_plane = uv_stride * uv_sclines + uv_alignment;
+		size = y_plane + uv_plane +
+				MMM_MEDIA_MAX(extra_size, 8 * y_stride);
+		size = MMM_COLOR_FMT_ALIGN(size, 4096);
+
+		/* Additional size to cover last row of non-aligned frame */
+		if (width >= 2400 && height >= 2400) {
+			size += MMM_COLOR_FMT_ALIGN(width, w_alignment) *
+					w_alignment;
+			size = MMM_COLOR_FMT_ALIGN(size, 4096);
+		}
+		break;
 	case MMM_COLOR_FMT_P010:
 	case MMM_COLOR_FMT_NV12_512:
 		uv_alignment = 4096;
 		y_plane = y_stride * y_sclines;
 		uv_plane = uv_stride * uv_sclines + uv_alignment;
-		size = y_plane + uv_plane;
+		size = y_plane + uv_plane +
+				MMM_MEDIA_MAX(extra_size, 8 * y_stride);
 		size = MMM_COLOR_FMT_ALIGN(size, 4096);
 		break;
 	case MMM_COLOR_FMT_NV12_UBWC:
+		y_sclines = MMM_COLOR_FMT_Y_SCANLINES(color_fmt, (height+1)>>1);
+		y_ubwc_plane = MMM_COLOR_FMT_ALIGN(y_stride * y_sclines, 4096);
+		uv_sclines = MMM_COLOR_FMT_UV_SCANLINES(color_fmt, (height+1)>>1);
+		uv_ubwc_plane = MMM_COLOR_FMT_ALIGN(uv_stride * uv_sclines, 4096);
 		y_meta_stride = MMM_COLOR_FMT_Y_META_STRIDE(color_fmt, width);
+		y_meta_scanlines =
+			MMM_COLOR_FMT_Y_META_SCANLINES(color_fmt, (height+1)>>1);
+		y_meta_plane = MMM_COLOR_FMT_ALIGN(
+			y_meta_stride * y_meta_scanlines, 4096);
 		uv_meta_stride = MMM_COLOR_FMT_UV_META_STRIDE(color_fmt, width);
-		if (width <= INTERLACE_WIDTH_MAX &&
-			height <= INTERLACE_HEIGHT_MAX &&
-			(height * width) / 256 <= INTERLACE_MB_PER_FRAME_MAX) {
-			y_sclines = MMM_COLOR_FMT_Y_SCANLINES(color_fmt,
-								(height+1)>>1);
-			y_ubwc_plane =
-				MMM_COLOR_FMT_ALIGN(y_stride * y_sclines, 4096);
-			uv_sclines = MMM_COLOR_FMT_UV_SCANLINES(color_fmt,
-								(height+1)>>1);
-			uv_ubwc_plane =	MMM_COLOR_FMT_ALIGN(
-						uv_stride * uv_sclines, 4096);
-			y_meta_scanlines = MMM_COLOR_FMT_Y_META_SCANLINES(
-						color_fmt, (height+1)>>1);
-			y_meta_plane = MMM_COLOR_FMT_ALIGN(
-				y_meta_stride * y_meta_scanlines, 4096);
-			uv_meta_scanlines = MMM_COLOR_FMT_UV_META_SCANLINES(
-					color_fmt, (height+1)>>1);
-			uv_meta_plane = MMM_COLOR_FMT_ALIGN(uv_meta_stride *
-				uv_meta_scanlines, 4096);
-			size = (y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
-				uv_meta_plane)*2;
-		} else {
-			y_sclines = MMM_COLOR_FMT_Y_SCANLINES(color_fmt,
-									height);
-			y_ubwc_plane =
-				MMM_COLOR_FMT_ALIGN(y_stride * y_sclines, 4096);
-			uv_sclines = MMM_COLOR_FMT_UV_SCANLINES(color_fmt,
-									height);
-			uv_ubwc_plane =
-				MMM_COLOR_FMT_ALIGN(uv_stride * uv_sclines,
-									4096);
-			y_meta_scanlines = MMM_COLOR_FMT_Y_META_SCANLINES(
-							color_fmt, height);
-			y_meta_plane = MMM_COLOR_FMT_ALIGN(
-				y_meta_stride * y_meta_scanlines, 4096);
-			uv_meta_scanlines = MMM_COLOR_FMT_UV_META_SCANLINES(
-							color_fmt, height);
-			uv_meta_plane = MMM_COLOR_FMT_ALIGN(uv_meta_stride *
-				uv_meta_scanlines, 4096);
-			size = (y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
-				uv_meta_plane);
-		}
+		uv_meta_scanlines =
+			MMM_COLOR_FMT_UV_META_SCANLINES(color_fmt, (height+1)>>1);
+		uv_meta_plane = MMM_COLOR_FMT_ALIGN(uv_meta_stride *
+			uv_meta_scanlines, 4096);
+
+		size = (y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
+			uv_meta_plane)*2 +
+			MMM_MEDIA_MAX(extra_size + 8192, 48 * y_stride);
 		size = MMM_COLOR_FMT_ALIGN(size, 4096);
+
+		/* Additional size to cover last row of non-aligned frame */
+		if (width >= 2400 && height >= 2400) {
+			size += MMM_COLOR_FMT_ALIGN(width, w_alignment) *
+					w_alignment;
+			size = MMM_COLOR_FMT_ALIGN(size, 4096);
+		}
 		break;
 	case MMM_COLOR_FMT_NV12_BPP10_UBWC:
 		y_ubwc_plane = MMM_COLOR_FMT_ALIGN(y_stride * y_sclines, 4096);
@@ -1281,7 +1301,8 @@ static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE(unsigned int color_fmt,
 					uv_meta_scanlines, 4096);
 
 		size = y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
-			uv_meta_plane;
+			uv_meta_plane +
+			MMM_MEDIA_MAX(extra_size + 8192, 48 * y_stride);
 		size = MMM_COLOR_FMT_ALIGN(size, 4096);
 		break;
 	case MMM_COLOR_FMT_P010_UBWC:
