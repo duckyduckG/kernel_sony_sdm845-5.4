@@ -1274,8 +1274,7 @@ static inline unsigned int MMM_COLOR_FMT_BUFFER_SIZE(unsigned int color_fmt,
 			uv_meta_scanlines, 4096);
 
 		size = (y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
-			uv_meta_plane)*2 +
-			MMM_MEDIA_MAX(extra_size + 8192, 48 * y_stride);
+			uv_meta_plane)*2;
 		size = MMM_COLOR_FMT_ALIGN(size, 4096);
 
 		/* Additional size to cover last row of non-aligned frame */

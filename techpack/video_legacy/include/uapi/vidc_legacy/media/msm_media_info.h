@@ -1316,9 +1316,7 @@ static inline unsigned int VENUS_BUFFER_SIZE(unsigned int color_fmt,
 			uv_meta_scanlines, 4096);
 
 		size = (y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
-			uv_meta_plane)*2 +
-			MSM_MEDIA_MAX(extra_size + 8192, 48 * y_stride);
-		size = MSM_MEDIA_ALIGN(size, 4096);
+			uv_meta_plane)*2;
 
 		/* Additional size to cover last row of non-aligned frame */
 		if (width >= 2400 && height >= 2400) {
