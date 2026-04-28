@@ -269,6 +269,10 @@ int msm_vidc_g_fmt(void *instance, struct v4l2_format *f)
 			"Invalid input, inst = %pK, format = %pK\n", inst, f);
 		return -EINVAL;
 	}
+	if (inst->in_reconfig) {
+		inst->prop.height[OUTPUT_PORT] = inst->reconfig_height;
+		inst->prop.width[OUTPUT_PORT] = inst->reconfig_width;
+	}
 
 	port = f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ?
 		OUTPUT_PORT : CAPTURE_PORT;

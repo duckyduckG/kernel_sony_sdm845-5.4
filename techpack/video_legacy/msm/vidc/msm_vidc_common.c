@@ -769,8 +769,11 @@ static int msm_comm_get_mbs_per_sec(struct msm_vidc_inst *inst)
 	int output_port_mbs, capture_port_mbs;
 	int fps;
 
-	output_port_mbs = NUM_MBS_PER_FRAME(inst->prop.width[OUTPUT_PORT],
-		inst->prop.height[OUTPUT_PORT]);
+	output_port_mbs = inst->in_reconfig ?
+			NUM_MBS_PER_FRAME(inst->reconfig_width,
+				inst->reconfig_height) :
+			NUM_MBS_PER_FRAME(inst->prop.width[OUTPUT_PORT],
+				inst->prop.height[OUTPUT_PORT]);
 
 	capture_port_mbs = NUM_MBS_PER_FRAME(inst->prop.width[CAPTURE_PORT],
 		inst->prop.height[CAPTURE_PORT]);
@@ -1756,12 +1759,8 @@ static void handle_event_change(enum hal_command_response cmd, void *data)
 
 	mutex_lock(&inst->lock);
 	inst->in_reconfig = true;
-
-	inst->prop.height[CAPTURE_PORT] = event_notify->height;
-	inst->prop.width[CAPTURE_PORT] = event_notify->width;
-	inst->prop.height[OUTPUT_PORT] = event_notify->height;
-	inst->prop.width[OUTPUT_PORT] = event_notify->width;
-
+	inst->reconfig_height = event_notify->height;
+	inst->reconfig_width = event_notify->width;
 	inst->bit_depth = event_notify->bit_depth;
 
 	if (msm_comm_get_stream_output_mode(inst) ==
@@ -1780,10 +1779,6 @@ static void handle_event_change(enum hal_command_response cmd, void *data)
 		if (!bufreq)
 			return;
 
-		inst->prop.height[CAPTURE_PORT] = event_notify->height;
-		inst->prop.width[CAPTURE_PORT] = event_notify->width;
-		inst->prop.height[OUTPUT_PORT] = event_notify->height;
-		inst->prop.width[OUTPUT_PORT] = event_notify->width;
 		extra_buff_count = msm_vidc_get_extra_buff_count(inst,
 						HAL_BUFFER_OUTPUT2);
 		bufreq->buffer_count_min = event_notify->capture_buf_count;
@@ -1796,10 +1791,6 @@ static void handle_event_change(enum hal_command_response cmd, void *data)
 		if (!bufreq)
 			return;
 
-		inst->prop.height[CAPTURE_PORT] = event_notify->height;
-		inst->prop.width[CAPTURE_PORT] = event_notify->width;
-		inst->prop.height[OUTPUT_PORT] = event_notify->height;
-		inst->prop.width[OUTPUT_PORT] = event_notify->width;
 		extra_buff_count = msm_vidc_get_extra_buff_count(inst,
 						HAL_BUFFER_OUTPUT);
 		bufreq->buffer_count_min = event_notify->capture_buf_count;
@@ -6171,6 +6162,10 @@ int msm_comm_session_continue(void *instance)
 			goto sess_continue_fail;
 		}
 		inst->in_reconfig = false;
+		inst->prop.height[CAPTURE_PORT] = inst->reconfig_height;
+		inst->prop.width[CAPTURE_PORT] = inst->reconfig_width;
+		inst->prop.height[OUTPUT_PORT] = inst->reconfig_height;
+		inst->prop.width[OUTPUT_PORT] = inst->reconfig_width;
 		if (msm_comm_get_stream_output_mode(inst) ==
 			HAL_VIDEO_DECODER_SECONDARY) {
 			rc = msm_comm_queue_output_buffers(inst);
