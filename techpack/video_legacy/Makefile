@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 # auto-detect subdirs
-ifeq ($(""), y)
+ifeq ($("CONFIG_ARCH_SM8150"), y)
 include $(srctree)/techpack/video_legacy/config/sdm845.conf
 LINUXINCLUDE    += -include $(srctree)/techpack/video_legacy/config/sdm845.h
 
